@@ -39,18 +39,30 @@ JOB_MEM=$(scontrol show jobid $SLURM_JOB_ID | grep Memory | awk '{print $2}' | a
 
 SPARK_VERSION="1.4.1-hadoop2.6"
 SPARK_HOME="${HOME}/spark/spark-${SPARK_VERSION}"
+SPARK_LOG_DIR="${SPARK_HOME}/logs/${SLURM_JOB_ID}"
 
-JAVA_HOME="/usr/lib/jvm/java-1.7.0-openjdk-1.7.0.79-2.5.5.1.el7_1.x86_64/"
+JAVA_HOME="/usr/lib/jvm/java-1.7.0"
 
 SSH_OPTS="-o StrictHostKeyChecking=no"
 
 #-------------------------------------------------------------------------------
+#  EXPORTS
+#-------------------------------------------------------------------------------
+export JAVA_HOME=${JAVA_HOME}
+
+
+#-------------------------------------------------------------------------------
 #  FUNCTIONS
 #-------------------------------------------------------------------------------
+make::dirs() {
+  if [[ -d ${SPARK_LOG_DIR} ]]; then
+    mkdir -p ${SPARK_LOG_DIR}
+  fi
+}
 expand::nodelist() {
   local nodelist="$1"
 
-  scontrol show hostnames "$nodelist" | paste -s -d " "
+  scontrol show hostnames "$nodelist" | sort | paste -s -d " "
 }
 
 conf::set_master() {
@@ -75,12 +87,23 @@ conf::set_env() {
   rm -f $SPARK_HOME/conf/spark-env.sh
 
   echo "SPARK_WORKER_MEMORY=\"$memory\"" > $SPARK_HOME/conf/spark-env.sh
+  echo "SPARK_LOG_DIR=\"$SPARK_LOG_DIR\"" >> $SPARK_HOME/conf/spark-env.sh
 }
 
 start::master() {
+  set -x
   local master_node="$1"
+  local hostname="$(hostname -s)"
+  
+  #ssh $SSH_OPTS $master_node "$SPARK_HOME/sbin/start-master.sh"
 
-  ssh $SSH_OPTS $master_node "$SPARK_HOME/sbin/start-master.sh"
+  if [[ "$hostname" == "$master_node" ]]; then
+    echo "I'm $hostname, trying to srun"
+    SLURM_NODEID=0 srun -N 1 hostname
+  else
+    echo "I'm NOT the master"
+  fi
+  set +x
 }
 
 start::slaves() {
@@ -89,16 +112,33 @@ start::slaves() {
   ssh $SSH_OPTS $master_node "$SPARK_HOME/sbin/start-slaves.sh"
 }
 
+start::all() {
+  local master_node="$1"
+  local hostname="$(hostname -s)"
+  
+  if [[ "$hostname" == "$master_node" ]]; then
+    echo "I'm $hostname, trying to srun"
+    srun --no-kill -W 0 "$SPARK_HOME/sbin/start-all.sh"
+  else
+    echo "I'm NOT the master"
+  fi
+
+}
+
 main() {
+  set -x
   local nodes=( $(expand::nodelist "$NODES") )
   local master_node="${nodes[0]}"
   local slave_nodes="${nodes[@]}"
+  set +x
 
+  make::dirs
   conf::set_master "$master_node"
   conf::set_slaves "$slave_nodes"
   conf::set_env "$JOB_MEM"
   start::master "$master_node"
-  start::slaves "$master_node"
+  #start::slaves "$master_node"
+  #start::all "$master_node"
 
   echo "#-------------------------------------------------------------------------------"
   echo "# INFO"
@@ -111,6 +151,11 @@ main() {
   echo "# Stopping your spark cluster"
   echo "#-------------------------------------------------------------------------------"
   echo "ssh $SSH_OPTS $master_node \"$SPARK_HOME/sbin/stop-all.sh\""
+
+  echo "#-------------------------------------------------------------------------------"
+  echo "# Running Spark Shell"
+  echo "#-------------------------------------------------------------------------------"
+  echo "ssh $SSH_OPTS $master_node \"$SPARK_HOME/bin/spark-shell --master spark://${master_node}:7077"
 
   echo "#-------------------------------------------------------------------------------"
   echo "# Running an example (for testing)"
