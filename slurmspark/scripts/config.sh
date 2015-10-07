@@ -66,23 +66,24 @@ JAVA_VERSION="1.7.0"
 ##
 SPARK_BINARY_PREFIX="${HOME}/spark"
 
-##
+## Directory for shared scratch
 SPARK_SCRATCH_DIR="${HOME}/sparkscratch"
 
 ## Spark Version to use
 ##   Options: When using system's install
 ##              1.4.1-hadoop2.6
-##              MORE SOON!!
 ##
 SPARK_VERSION="1.4.1-bin-hadoop2.6"
 
-## Directory to write spark ( logs | configuration file | pids ) to.
+## Directory to write spark ( logs | configuration file | pids | local ) to.
 ##   Options: Valid path to directory shared between nodes
 ##     Notes: Needs to be writable by your user.
 ##
 SPARK_LOG_DIR="${SPARK_SCRATCH_DIR}/logs/${SLURM_JOB_ID}"
 SPARK_CONF_DIR="${SPARK_SCRATCH_DIR}/conf/${SLURM_JOB_ID}"
 SPARK_PID_DIR="${SPARK_SCRATCH_DIR}/pid/${SLURM_JOB_ID}"
+SPARK_LOCAL_DIRS="${SPARK_SCRATCH_DIR}/local/${SLURM_JOB_ID}"
+SPARK_WORKER_DIR="${SPARK_SCRATCH_DIR}/worker/${SLURM_JOB_ID}"
 
 ## Spark ( MASTER | MASTER_WEBUI | WORKER_WEBUI ) Port
 ##   Options: (any port greater than 1000 that is not in use)
@@ -114,11 +115,14 @@ SLURM_WALLTIME="$(squeue -j ${SLURM_JOB_ID} -h -o %L)"
 ## Currently Unused
 #SPARK_NODE_RANK="$SLURM_NODEID"
 
+## SSH Options
+SSH_OPTS="-o StrictHostKeyChecking=no"
+
 ## Directory of the Spark install to use
 SPARK_HOME="${SPARK_BINARY_PREFIX}/spark-${SPARK_VERSION}"
 
-##
-SPARK_WORKER_MEMORY=$(scontrol show jobid $SLURM_JOB_ID | grep -oE 'MinMemory(Node|CPU)=[0-9]*[a-zA-Z]' | awk -F'=' '{print $2}')
+## Determine the memory to set workers to based on Slurm job
+SPARK_WORKER_MEMORY="$(scontrol show jobid $SLURM_JOB_ID | grep -oE 'MinMemory(Node|CPU)=[0-9]*[a-zA-Z]' | awk -F'=' '{print $2}')"
 
-##
-SPARK_WORKER_CORES=$(scontrol show jobid $SLURM_JOB_ID | grep -oE 'NumCPUs=[0-9]*' | grep -oE '[0-9]*')
+## Determine number of CPUs to use for the workers based on Slurm job
+SPARK_WORKER_CORES="$(scontrol show jobid $SLURM_JOB_ID | grep -oE 'NumCPUs=[0-9]*' | grep -oE '[0-9]*')"

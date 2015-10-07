@@ -32,14 +32,13 @@ spark::start_master() {
   ${SPARK_HOME}/sbin/spark-daemon.sh start org.apache.spark.deploy.master.Master 1 \
     --ip $SPARK_MASTER_IP \
     --port $SPARK_MASTER_PORT \
-    --webui-port $SPARK_MASTER_WEBUI_PORT
+    --webui-port $SPARK_MASTER_WEBUI_PORT &>/dev/null
 }
 
 spark::start_slave() {
-  echo "$(hostname) : Attempting to start slave"
   ${SPARK_HOME}/sbin/spark-daemon.sh start org.apache.spark.deploy.worker.Worker 1 \
     --webui-port ${SPARK_WORKER_WEBUI_PORT} \
-    "spark://${SPARK_MASTER_IP}:${SPARK_MASTER_PORT}"
+    "spark://${SPARK_MASTER_IP}:${SPARK_MASTER_PORT}" &>/dev/null
 }
 
 spark::wait_for_master() {
@@ -92,16 +91,34 @@ spark::get_set_info() {
   export SPARK_UI_URL=${spark_ui_url}
 }
 
-spark::print_master_info() {
+spark::print_info() {
   echo "#-------------------------------------------------------------------------------"
   echo "# SPARK MASTER INFO"
   echo "#-------------------------------------------------------------------------------"
-  echo "            IP : $SPARK_MASTER_IP"
-  echo "   Master Port : $SPARK_MASTER_PORT"
-  echo "  Service Port : $SPARK_SERVICE_PORT"
-  echo "    WebUI Port : $SPARK_MASTER_WEBUI_PORT"
-  echo "     WebUI URL : $SPARK_UI_URL"
+  echo "            IP : ${SPARK_MASTER_IP}"
+  echo "   Master Port : ${SPARK_MASTER_PORT}"
+  echo "  Service Port : ${SPARK_SERVICE_PORT}"
+  echo "    WebUI Port : ${SPARK_MASTER_WEBUI_PORT}"
+  echo "     WebUI URL : ${SPARK_UI_URL}"
   echo "#-------------------------------------------------------------------------------"
+  echo ""
+  echo "#-------------------------------------------------------------------------------"
+  echo "# SPARK SHELL INFO"
+  echo "#-------------------------------------------------------------------------------"
+  echo "Starting a Spark Shell:"
+  echo "  MASTER=\"spark://${SPARK_MASTER_IP}:${SPARK_MASTER_PORT}\" ${SPARK_HOME}/bin/spark-shell"
+  echo "#-------------------------------------------------------------------------------"
+  echo ""
+  echo "#-------------------------------------------------------------------------------"
+  echo "# SPARK EXAMPLE JOB"
+  echo "#-------------------------------------------------------------------------------"
+  echo "Calculating Pi"
+  echo "  export MASTER=\"spark://${SPARK_MASTER_IP}:${SPARK_MASTER_PORT}\""
+  echo "  export SPARK_EXECUTOR_MEMORY=\"5g\""
+  echo "  export SPARK_LOCAL_DIRS=\"${SPARK_LOCAL_DIRS}\""
+  echo "  ${SPARK_HOME}/bin/run-example \"org.apache.spark.examples.SparkPi\" \"2\""
+  echo "#-------------------------------------------------------------------------------"
+  echo ""
 }
 
 
@@ -112,7 +129,7 @@ main() {
     spark::start_master
     spark::wait_for_master
     spark::get_set_info
-    spark::print_master_info
+    spark::print_info
   else
     spark::wait_for_master
     spark::get_set_info
