@@ -121,6 +121,22 @@ spark::print_info() {
   echo ""
 }
 
+spark::print_debug() {
+  echo "#-------------------------------------------------------------------------------"
+  echo "# DEBUG"
+  echo "#-------------------------------------------------------------------------------"
+  echo "Java Home          = ${JAVA_HOME}"
+  echo ""
+  echo "Spark Home         = ${SPARK_HOME}"
+  echo "Spark Log Dir      = ${SPARK_LOG_DIR}"
+  echo "Spark Conf Dir     = ${SPARK_CONF_DIR}"
+  echo "Spark Pid Dir      = ${SPARK_PID_DIR}"
+  echo "Spark Local Dir    = ${SPARK_LOCAL_DIRS}"
+  echo "Spark Worker Dir   = ${SPARK_WORKER_DIR}"
+  echo ""
+  echo "Slurm CPUs in Node = ${SLURM_CPUS_ON_NODE}"
+}
+
 
 main() {
   local wait_time="$(slurm::walltime_to_min "$SLURM_WALLTIME")"
@@ -130,6 +146,7 @@ main() {
     spark::wait_for_master
     spark::get_set_info
     spark::print_info
+    spark::print_debug
   else
     spark::wait_for_master
     spark::get_set_info
