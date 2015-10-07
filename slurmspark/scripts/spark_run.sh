@@ -28,13 +28,99 @@ MYHOSTNAME="$(hostname -s)"
 #-------------------------------------------------------------------------------
 #  FUNCTIONS
 #-------------------------------------------------------------------------------
+spark::start_master() {
+  ${SPARK_HOME}/sbin/spark-daemon.sh start org.apache.spark.deploy.master.Master 1 \
+    --ip $SPARK_MASTER_IP \
+    --port $SPARK_MASTER_PORT \
+    --webui-port $SPARK_MASTER_WEBUI_PORT
+}
+
+spark::start_slave() {
+  echo "$(hostname) : Attempting to start slave"
+  ${SPARK_HOME}/sbin/spark-daemon.sh start org.apache.spark.deploy.worker.Worker 1 \
+    --webui-port ${SPARK_WORKER_WEBUI_PORT} \
+    "spark://${SPARK_MASTER_IP}:${SPARK_MASTER_PORT}"
+}
+
+spark::wait_for_master() {
+  local master_log="${SPARK_LOG_DIR}/*master.Master*.out"
+
+  while true; do
+    if grep -q "INFO Utils: Successfully started service 'sparkMaster' on port" $master_log 2>/dev/null; then
+      break
+    fi
+    sleep 0.5
+  done
+  while true; do
+    if grep -q "INFO Utils: Successfully started service on port" $master_log 2>/dev/null; then
+      break
+    fi
+    sleep 0.5
+  done
+  while true; do
+    if grep -q "INFO Utils: Successfully started service 'MasterUI' on port" $master_log 2>/dev/null; then
+      break
+    fi
+    sleep 0.5
+  done
+  while true; do
+    if grep -q "INFO MasterWebUI: Started MasterWebUI at" $master_log 2>/dev/null; then
+      break
+    fi
+    sleep 0.5
+  done
+}
+
+spark::get_set_info() {
+  local master_log="${SPARK_LOG_DIR}/*master.Master*.out"
+ 
+  local spark_master_ip="$(cat ${SPARK_CONF_DIR}/masters | head -n 1)"
+
+  local spark_master_port=$(grep "INFO Utils: Successfully started service 'sparkMaster' on port" $master_log \
+                            | awk -F 'port ' '{print $2}' | sed 's/\.$//g')
+  local spark_service_port=$(grep "INFO Utils: Successfully started service on port" $master_log \
+                             | awk -F 'port ' '{print $2}' | sed 's/\.$//g')
+  local spark_ui_port=$(grep "INFO Utils: Successfully started service 'MasterUI' on port" $master_log \
+                        | awk -F 'port ' '{print $2}' | sed 's/\.$//g')
+  local spark_ui_url=$(grep "INFO MasterWebUI: Started MasterWebUI at" $master_log \
+                       | grep -iIohE 'https?://[^[:space:]]+')
+  
+  export SPARK_MASTER_IP=${spark_master_ip}
+  export SPARK_MASTER_PORT=${spark_master_port}
+  export SPARK_SERVICE_PORT=${spark_service_port}
+  export SPARK_MASTER_WEBUI_PORT=${spark_ui_port}
+  export SPARK_UI_URL=${spark_ui_url}
+}
+
+spark::print_master_info() {
+  echo "#-------------------------------------------------------------------------------"
+  echo "# SPARK MASTER INFO"
+  echo "#-------------------------------------------------------------------------------"
+  echo "            IP : $SPARK_MASTER_IP"
+  echo "   Master Port : $SPARK_MASTER_PORT"
+  echo "  Service Port : $SPARK_SERVICE_PORT"
+  echo "    WebUI Port : $SPARK_MASTER_WEBUI_PORT"
+  echo "     WebUI URL : $SPARK_UI_URL"
+  echo "#-------------------------------------------------------------------------------"
+}
+
+
 main() {
+  local wait_time="$(slurm::walltime_to_min "$SLURM_WALLTIME")"
+
   if grep -q ${MYHOSTNAME} ${SPARK_CONF_DIR}/masters; then
-    echo "$MYHOSTNAME is the master"
-    echo "******************************************************"
-    env
-    echo "******************************************************"
+    spark::start_master
+    spark::wait_for_master
+    spark::get_set_info
+    spark::print_master_info
+  else
+    spark::wait_for_master
+    spark::get_set_info
+    spark::start_slave
   fi
+
+  env > ${SPARK_LOG_DIR}/$(hostname).run.env
+  slurm::wait "$wait_time"
 }
 
 main

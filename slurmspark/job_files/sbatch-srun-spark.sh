@@ -24,6 +24,7 @@
 #SBATCH --time=128
 #SBATCH --job-name=testing
 #SBATCH --partition=Mem128
+#SBATCH --mem=60000
 
 #SBATCH --ntasks-per-node=1
 #SBATCH --exclusive
