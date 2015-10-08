@@ -5,17 +5,19 @@
 # 
 #         USAGE: ./config.sh 
 # 
-#   DESCRIPTION: 
+#   DESCRIPTION: Configuration file for use with the slurmspark project
 # 
-#       OPTIONS: ---
-#  REQUIREMENTS: ---
-#          BUGS: ---
-#         NOTES: ---
+#       OPTIONS: 
+#  REQUIREMENTS: 
+#          BUGS: Please Report
+#         NOTES: 
 #        AUTHOR: Micheal Quinn (), quinnm@missouri.edu
-#  ORGANIZATION: 
+#  ORGANIZATION: RCSS
 #       CREATED: 10/06/2015 03:54:47 PM CDT
-#      REVISION:  ---
+#      REVISION: 0.1
 #===============================================================================
+set -o nounset                              # Treat unset variables as an error
+
 #-------------------------------------------------------------------------------
 # CONFIG (Modifiable)
 #-------------------------------------------------------------------------------
@@ -29,7 +31,7 @@ JAVA_VERSION="1.7.0"
 ##     Notes: To use the system's version of spark, set this to
 ##            SPARK_HOME_PREFIX="/share/sw/spark"
 ##
-##            To use a custom install, specify any complete and valid path.
+##            To use a custom install, specify a path to your spark installs.
 ##            Example: SPARK_HOME_PREFIX="${HOME}/spark"
 ##              Where ${HOME}/spark contains your spark versions
 ##              ${HOME}/spark
@@ -64,17 +66,30 @@ JAVA_VERSION="1.7.0"
 ##                  ├── RELEASE
 ##                  └── sbin
 ##
+##             You can download spark from http://spark.apache.org/downloads.html
 SPARK_BINARY_PREFIX="/share/sw/spark"
 
-## Directory for shared scratch
+## Directory for shared scratch.
+##     Notes: Directory must be accessible from every node in the cluster
+##            This directory will contain your job-specific spark configs, logs, etc...
 SPARK_SCRATCH_DIR="${HOME}/sparkscratch"
 
-## Spark Version to use
-##   Options: When using system's install
-##              1.4.1-hadoop2.6
+## Spark and Hadoop Version to use
+##   Options: When using system's install, these values must match what a version
+##            That is currently installed in /share/sw/spark
+##     Notes: These two values (along with SPARK_BINARY_PREFIX) are joined later in this file and the result is 
+##            stored in SPARK_HOME.
+##
+##            For example, if 
+##              SPARK_BINARY_PREFIX=/share/sw/spark
+##              SPARK_VERSION=1.4.1
+##              SPARK_HADOOP_VERSION=2.6
+##            then
+##              SPARK_HOME=/share/sw/spark/spark-1.4.1-hadoop2.6
+##               
 ##
 SPARK_VERSION="1.4.1"
-SPARK_HADOOP_VERSION="hadoop2.6"
+SPARK_HADOOP_VERSION="2.6"
 
 ## Directory to write spark ( logs | configuration file | pids | local ) to.
 ##   Options: Valid path to directory shared between nodes
@@ -120,7 +135,7 @@ SLURM_WALLTIME="$(squeue -j ${SLURM_JOB_ID} -h -o %L)"
 SSH_OPTS="-o StrictHostKeyChecking=no"
 
 ## Directory of the Spark install to use
-SPARK_HOME="${SPARK_BINARY_PREFIX}/spark-${SPARK_VERSION}-${SPARK_HADOOP_VERSION}"
+SPARK_HOME="${SPARK_BINARY_PREFIX}/spark-${SPARK_VERSION}-hadoop${SPARK_HADOOP_VERSION}"
 
 ## Determine the memory to set workers to based on Slurm job
 SPARK_WORKER_MEMORY="$(scontrol show jobid $SLURM_JOB_ID | grep -oE 'MinMemory(Node|CPU)=[0-9]*[a-zA-Z]' | awk -F'=' '{print $2}')"

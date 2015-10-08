@@ -5,21 +5,28 @@
 # 
 #         USAGE: ./helper_functions.sh 
 # 
-#   DESCRIPTION: 
+#   DESCRIPTION: Collection of helper functions for use in other scripts within
+#                slurmspark
 # 
-#       OPTIONS: ---
-#  REQUIREMENTS: ---
-#          BUGS: ---
-#         NOTES: ---
+#       OPTIONS: 
+#  REQUIREMENTS: 
+#          BUGS: Please Report
+#         NOTES: 
 #        AUTHOR: Micheal Quinn (), quinnm@missouri.edu
-#  ORGANIZATION: 
+#  ORGANIZATION: RCSS
 #       CREATED: 10/06/2015 03:56:25 PM CDT
-#      REVISION:  ---
+#      REVISION: 0.1
 #===============================================================================
 
 set -o nounset                              # Treat unset variables as an error
 #-------------------------------------------------------------------------------
 #  FUNCTIONS
+#-------------------------------------------------------------------------------
+#---  FUNCTION  ----------------------------------------------------------------
+#          NAME:  slurm::walltime_to_min
+#   DESCRIPTION:  Converts the walltime value to minutes
+#    PARAMETERS:  $1 = The Walltime
+#       RETURNS:  Prints result of conversion to stdout
 #-------------------------------------------------------------------------------
 slurm::walltime_to_min () {
     local walltime="$1"
@@ -38,6 +45,13 @@ slurm::walltime_to_min () {
     echo "$walltimetominutes"
 }
 
+#---  FUNCTION  ----------------------------------------------------------------
+#          NAME:  slurm::wait
+#   DESCRIPTION:  Waits X ammount of time.  This is what keeps the slurmspark
+#                 job from exiting before it's time is up.
+#    PARAMETERS:  $1 = How long to wait in minutes
+#       RETURNS:  NONE
+#-------------------------------------------------------------------------------
 slurm::wait() {
   local waittime="$1"
   local iterations="$(($waittime * 2))"

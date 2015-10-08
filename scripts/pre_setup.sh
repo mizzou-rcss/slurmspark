@@ -5,16 +5,16 @@
 # 
 #         USAGE: ./pre_setup.sh 
 # 
-#   DESCRIPTION: 
+#   DESCRIPTION: Sets up the environent for the slurmspark job
 # 
-#       OPTIONS: ---
-#  REQUIREMENTS: ---
-#          BUGS: ---
-#         NOTES: ---
+#       OPTIONS: 
+#  REQUIREMENTS: 
+#          BUGS: Please Report
+#         NOTES: 
 #        AUTHOR: Micheal Quinn (), quinnm@missouri.edu
-#  ORGANIZATION: 
+#  ORGANIZATION: RCSS
 #       CREATED: 10/06/2015 03:57:31 PM CDT
-#      REVISION:  ---
+#      REVISION: 0.1
 #===============================================================================
 
 set -o nounset                              # Treat unset variables as an error
@@ -27,6 +27,12 @@ source ${SCRIPT_HOME}/helper_functions.sh
 #-------------------------------------------------------------------------------
 #  FUNCTIONS
 #-------------------------------------------------------------------------------
+#---  FUNCTION  ----------------------------------------------------------------
+#          NAME:  make::dirs
+#   DESCRIPTION:  Makes required directories for the slurmspark job
+#    PARAMETERS:  NONE
+#       RETURNS:  NONE
+#-------------------------------------------------------------------------------
 make::dirs() {
   if [[ ! -d ${SPARK_LOG_DIR} ]]; then
     mkdir -p ${SPARK_LOG_DIR}
@@ -37,8 +43,21 @@ make::dirs() {
   if [[ ! -d ${SPARK_PID_DIR} ]]; then
     mkdir -p ${SPARK_PID_DIR}
   fi
+  if [[ ! -d ${SPARK_LOCAL_DIRS} ]]; then
+    mkdir -p ${SPARK_LOCAL_DIRS}
+  fi
+  if [[ ! -d ${SPARK_WORKER_DIR} ]]; then
+    mkdir -p ${SPARK_WORKER_DIR}
+  fi
 }
 
+#---  FUNCTION  ----------------------------------------------------------------
+#          NAME:  spark::set_rank
+#   DESCRIPTION:  Ranks nodes in job based on hostname order, and writes
+#                 config files if write_config=true
+#    PARAMETERS:  $1 = List of nodes, usually from $SLURM_JOB_NODELIST
+#       RETURNS:  NONE
+#-------------------------------------------------------------------------------
 spark::set_rank() {
   local node_list=( $(scontrol show hostnames "$1" | paste -s -d " " | sort) )
   local write_config="$2"
@@ -56,6 +75,15 @@ spark::set_rank() {
   fi
 }
 
+#---  FUNCTION  ----------------------------------------------------------------
+#          NAME:  spark::env_config
+#   DESCRIPTION:  Writes out useful Slurm environemtnal variables to 
+#                 ${SPARK_CONF_DIR}/spark-env.sh
+#
+#                 Currently unused.
+#    PARAMETERS:  NONE
+#       RETURNS:  NONE
+#-------------------------------------------------------------------------------
 spark::env_config() {
   if [[ ! -f ${SPARK_CONF_DIR}/spark-env.sh ]]; then
     touch ${SPARK_CONF_DIR}/spark-env.sh
@@ -71,6 +99,12 @@ spark::env_config() {
   echo "SPARK_WORKER_MEMORY=${SPARK_WORKER_MEMORY}"         >> ${SPARK_CONF_DIR}/spark-env.sh
 }
 
+#---  FUNCTION  ----------------------------------------------------------------
+#          NAME:  spark::env_export
+#   DESCRIPTION:  Exports Slurm environemtnal variables
+#    PARAMETERS:  NONE
+#       RETURNS:  NONE
+#-------------------------------------------------------------------------------
 spark::env_export() {
   export SPARK_LOG_DIR=${SPARK_LOG_DIR}
   export SPARK_CONF_DIR=${SPARK_CONF_DIR}
@@ -83,19 +117,29 @@ spark::env_export() {
   export SPARK_WORKER_DIR=${SPARK_WORKER_DIR}
 }
 
+#---  FUNCTION  ----------------------------------------------------------------
+#          NAME:  main
+#   DESCRIPTION:  The main function.  It's task is to logically call out other
+#                 functions in a logical order logically.
+#    PARAMETERS:  NONE
+#       RETURNS:  NONE
+#-------------------------------------------------------------------------------
 main() {
   make::dirs
   
   if [[ "$SLURM_NODEID" == "0" ]]; then
     spark::set_rank "$SLURM_JOB_NODELIST" "true"
-    spark::env_config
     spark::env_export
   else
     spark::set_rank "$SLURM_JOB_NODELIST" "false"
     spark::env_export
   fi
 
+  ## For Debugging
   env > ${SPARK_LOG_DIR}/$(hostname).pre.env
 }
 
+#-------------------------------------------------------------------------------
+#  CALL
+#-------------------------------------------------------------------------------
 main

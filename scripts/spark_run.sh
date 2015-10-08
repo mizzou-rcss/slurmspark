@@ -5,28 +5,34 @@
 # 
 #         USAGE: ./spark_run.sh 
 # 
-#   DESCRIPTION: 
+#   DESCRIPTION: Script that starts up the Spark cluster.
 # 
-#       OPTIONS: ---
-#  REQUIREMENTS: ---
-#          BUGS: ---
-#         NOTES: ---
+#       OPTIONS: 
+#  REQUIREMENTS: 
+#          BUGS: Please Report
+#         NOTES: 
 #        AUTHOR: Micheal Quinn (), quinnm@missouri.edu
-#  ORGANIZATION: 
+#  ORGANIZATION: RCSS
 #       CREATED: 10/06/2015 04:19:52 PM CDT
-#      REVISION:  ---
+#      REVISION: 0.1
 #===============================================================================
-
 set -o nounset                              # Treat unset variables as an error
+source ${SCRIPT_HOME}/pre_setup.sh
+source ${SCRIPT_HOME}/check_config.sh
+
 #-------------------------------------------------------------------------------
 # CONFIG
 #-------------------------------------------------------------------------------
-source ${SCRIPT_HOME}/pre_setup.sh
-
 MYHOSTNAME="$(hostname -s)"
 
 #-------------------------------------------------------------------------------
 #  FUNCTIONS
+#-------------------------------------------------------------------------------
+#---  FUNCTION  ----------------------------------------------------------------
+#          NAME:  spark::start_master
+#   DESCRIPTION:  Starts the spark master
+#    PARAMETERS:  NONE
+#       RETURNS:  NONE
 #-------------------------------------------------------------------------------
 spark::start_master() {
   ${SPARK_HOME}/sbin/spark-daemon.sh start org.apache.spark.deploy.master.Master 1 \
@@ -35,12 +41,25 @@ spark::start_master() {
     --webui-port $SPARK_MASTER_WEBUI_PORT &>/dev/null
 }
 
+#---  FUNCTION  ----------------------------------------------------------------
+#          NAME:  spark::start_slave
+#   DESCRIPTION:  Starts a spark slave
+#    PARAMETERS:  NONE
+#       RETURNS:  NONE
+#-------------------------------------------------------------------------------
 spark::start_slave() {
   ${SPARK_HOME}/sbin/spark-daemon.sh start org.apache.spark.deploy.worker.Worker 1 \
     --webui-port ${SPARK_WORKER_WEBUI_PORT} \
     "spark://${SPARK_MASTER_IP}:${SPARK_MASTER_PORT}" &>/dev/null
 }
 
+#---  FUNCTION  ----------------------------------------------------------------
+#          NAME:  spark::wait_for_master
+#   DESCRIPTION:  Monitors for the master's log file, then watches log for
+#                 signs of completion.
+#    PARAMETERS:  NONE
+#       RETURNS:  NONE
+#-------------------------------------------------------------------------------
 spark::wait_for_master() {
   local master_log="${SPARK_LOG_DIR}/*master.Master*.out"
 
@@ -70,6 +89,13 @@ spark::wait_for_master() {
   done
 }
 
+#---  FUNCTION  ----------------------------------------------------------------
+#          NAME:  spark::get_set_info
+#   DESCRIPTION:  Searches master's log for information on the spark cluster
+#                 and sets / exports variables accordingly
+#    PARAMETERS:  NONE
+#       RETURNS:  NONE
+#-------------------------------------------------------------------------------
 spark::get_set_info() {
   local master_log="${SPARK_LOG_DIR}/*master.Master*.out"
  
@@ -91,6 +117,12 @@ spark::get_set_info() {
   export SPARK_UI_URL=${spark_ui_url}
 }
 
+#---  FUNCTION  ----------------------------------------------------------------
+#          NAME:  spark::print_info
+#   DESCRIPTION:  Prints helpful info about the spark cluster
+#    PARAMETERS:  NONE
+#       RETURNS:  NONE
+#-------------------------------------------------------------------------------
 spark::print_info() {
   echo "#-------------------------------------------------------------------------------"
   echo "# SPARK MASTER INFO"
@@ -121,6 +153,12 @@ spark::print_info() {
   echo ""
 }
 
+#---  FUNCTION  ----------------------------------------------------------------
+#          NAME:  spark::print_debug
+#   DESCRIPTION:  Prints extra info about the environemnt. Currently unused.
+#    PARAMETERS:  NONE
+#       RETURNS:  NONE
+#-------------------------------------------------------------------------------
 spark::print_debug() {
   echo "#-------------------------------------------------------------------------------"
   echo "# DEBUG"
@@ -137,7 +175,13 @@ spark::print_debug() {
   echo "Slurm CPUs in Node = ${SLURM_CPUS_ON_NODE}"
 }
 
-
+#---  FUNCTION  ----------------------------------------------------------------
+#          NAME:  main
+#   DESCRIPTION:  The main function.  It's task is to logically call out other
+#                 functions in a logical order logically.
+#    PARAMETERS:  NONE
+#       RETURNS:  NONE
+#-------------------------------------------------------------------------------
 main() {
   local wait_time="$(slurm::walltime_to_min "$SLURM_WALLTIME")"
 
@@ -146,15 +190,20 @@ main() {
     spark::wait_for_master
     spark::get_set_info
     spark::print_info
-    spark::print_debug
   else
     spark::wait_for_master
     spark::get_set_info
     spark::start_slave
   fi
 
+  ## For Debugging
   env > ${SPARK_LOG_DIR}/$(hostname).run.env
+
+  ## Wait for timeout
   slurm::wait "$wait_time"
 }
 
+#-------------------------------------------------------------------------------
+#  CALL
+#-------------------------------------------------------------------------------
 main
