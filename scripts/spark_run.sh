@@ -189,6 +189,9 @@ main() {
     spark::start_master
     spark::wait_for_master
     spark::get_set_info
+    if [[ "$SLURM_JOB_NUM_NODES" == "1" ]]; then
+      spark::start_slave
+    fi
     spark::print_info
   else
     spark::wait_for_master
