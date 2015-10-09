@@ -48,7 +48,10 @@ spark::start_master() {
 #       RETURNS:  NONE
 #-------------------------------------------------------------------------------
 spark::start_slave() {
-  ${SPARK_HOME}/sbin/spark-daemon.sh start org.apache.spark.deploy.worker.Worker 1 \
+  local spark_worker_cores="$1"
+
+  SPARK_WORKER_CORES=${spark_worker_cores} ${SPARK_HOME}/sbin/spark-daemon.sh \
+    start org.apache.spark.deploy.worker.Worker 1 \
     --webui-port ${SPARK_WORKER_WEBUI_PORT} \
     "spark://${SPARK_MASTER_IP}:${SPARK_MASTER_PORT}" &>/dev/null
 }
@@ -189,14 +192,12 @@ main() {
     spark::start_master
     spark::wait_for_master
     spark::get_set_info
-    if [[ "$SLURM_JOB_NUM_NODES" == "1" ]]; then
-      spark::start_slave
-    fi
+    spark::start_slave "$((${SPARK_WORKER_CORES} - 1))"
     spark::print_info
   else
     spark::wait_for_master
     spark::get_set_info
-    spark::start_slave
+    spark::start_slave "${SPARK_WORKER_CORES}"
   fi
 
   ## For Debugging
