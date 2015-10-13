@@ -23,7 +23,7 @@ source ${SCRIPT_HOME}/check_config.sh
 #-------------------------------------------------------------------------------
 # CONFIG
 #-------------------------------------------------------------------------------
-MYHOSTNAME="$(hostname -s)"
+HOSTNAME="$(hostname -s)"
 
 #-------------------------------------------------------------------------------
 #  FUNCTIONS
@@ -188,7 +188,7 @@ spark::print_debug() {
 main() {
   local wait_time="$(slurm::walltime_to_min "$SLURM_WALLTIME")"
 
-  if grep -q ${MYHOSTNAME} ${SPARK_CONF_DIR}/masters; then
+  if grep -q ${HOSTNAME} ${SPARK_CONF_DIR}/masters; then
     spark::start_master
     spark::wait_for_master
     spark::get_set_info

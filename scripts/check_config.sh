@@ -22,7 +22,7 @@ source ${SCRIPT_HOME}/config.sh
 #-------------------------------------------------------------------------------
 #  CONFIG
 #-------------------------------------------------------------------------------
-MYHOSTNAME="$(hostname -s)"
+HOSTNAME="$(hostname -s)"
 
 #-------------------------------------------------------------------------------
 #  FUNCTIONS
@@ -40,11 +40,11 @@ print::message() {
   local message="$2"
   
   case "$message_type" in
-    'INFO'  ) echo "$MYHOSTNAME : $message_type : $message"
+    'INFO'  ) echo "$HOSTNAME : $message_type : $message"
               ;;
-    'WARN'  ) echo "$MYHOSTNAME : $message_type : $message"
+    'WARN'  ) echo "$HOSTNAME : $message_type : $message"
               ;;
-    'ERROR' ) echo "$MYHOSTNAME : $message_type : $message";
+    'ERROR' ) echo "$HOSTNAME : $message_type : $message";
               exit 1;
               ;;
   esac
