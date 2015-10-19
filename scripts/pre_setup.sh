@@ -49,6 +49,18 @@ make::dirs() {
   if [[ ! -d ${SPARK_WORKER_DIR} ]]; then
     mkdir -p ${SPARK_WORKER_DIR}
   fi
+  if [[ ! -d ${HADOOP_CONF_DIR} ]]; then
+    mkdir -p ${HADOOP_CONF_DIR}
+  fi
+  if [[ ! -d ${HADOOP_HDFS_HOME} ]]; then
+    mkdir -p ${HADOOP_HDFS_HOME}
+  fi
+  if [[ ! -d ${HADOOP_MAPRED_HOME} ]]; then
+    mkdir -p ${HADOOP_MAPRED_HOME}
+  fi
+  if [[ ! -d ${HADOOP_YARN_HOME} ]]; then
+    mkdir -p ${HADOOP_YARN_HOME}
+  fi
 }
 
 #---  FUNCTION  ----------------------------------------------------------------
@@ -115,6 +127,12 @@ spark::env_export() {
   export SPARK_WORKER_MEMORY=${SPARK_WORKER_MEMORY}
   export SPARK_LOCAL_DIRS=${SPARK_LOCAL_DIRS}
   export SPARK_WORKER_DIR=${SPARK_WORKER_DIR}
+  export HADOOP_HOME=${HADOOP_HOME}
+  export HADOOP_COMMON=${HADOOP_COMMON}
+  export HADOOP_CONF_DIR=${HADOOP_CONF_DIR}
+  export HADOOP_HDFS_HOME=${HADOOP_HDFS_HOME}
+  export HADOOP_MAPRED_HOME=${HADOOP_MAPRED_HOME}
+  export HADOOP_YARN_HOME=${HADOOP_YARN_HOME}
 }
 
 #---  FUNCTION  ----------------------------------------------------------------
