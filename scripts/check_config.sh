@@ -74,12 +74,12 @@ check::variables() {
     print::message "ERROR" "SPARK_BINARY_PREFIX must be a directory"
   fi
 
-  ## SPARK_SCRATCH_DIR
-  if [[ "$SPARK_SCRATCH_DIR" == "" ]]; then
-    print::message "ERROR" "SPARK_SCRATCH_DIR must be set"
+  ## SCRATCH_DIR
+  if [[ "$SCRATCH_DIR" == "" ]]; then
+    print::message "ERROR" "SCRATCH_DIR must be set"
   fi
-  if [[ ! -d "$SPARK_SCRATCH_DIR" ]]; then
-    print::message "ERROR" "SPARK_SCRATCH_DIR must be a directory"
+  if [[ ! -d "$SCRATCH_DIR" ]]; then
+    print::message "ERROR" "SCRATCH_DIR must be a directory"
   fi
 
   ## SPARK_VERSION
