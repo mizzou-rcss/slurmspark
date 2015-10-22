@@ -120,7 +120,7 @@ SPARK_WORKER_WEBUI_PORT="8081"
 #  CONFIG HADOOP
 #-------------------------------------------------------------------------------
 HADOOP_VERSION="2.6.1"
-HADOOP_BINARY_PREFIX="/share/sw/hadoop/"
+HADOOP_BINARY_PREFIX="/share/sw/hadoop"
 HADOOP_HOME="${HADOOP_BINARY_PREFIX}/hadoop-${HADOOP_VERSION}"
 HADOOP_COMMON="${HADOOP_BINARY_PREFIX}/hadoop-${HADOOP_VERSION}"
 HADOOP_CONF_DIR="${SCRATCH_DIR}/conf/hadoop/${SLURM_JOB_ID}"
