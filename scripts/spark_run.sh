@@ -29,6 +29,73 @@ HOSTNAME="$(hostname -s)"
 #  FUNCTIONS
 #-------------------------------------------------------------------------------
 #---  FUNCTION  ----------------------------------------------------------------
+#          NAME:  hadoop::choose_port
+#   DESCRIPTION:  
+#    PARAMETERS:  
+#       RETURNS:  
+#-------------------------------------------------------------------------------
+hadoop::choose_port() {
+  local port="$1"
+
+	while true; do
+		ports="$(netstat -lnt |tail -n+3 | awk '{print $4}' | grep -o ':[0-9].*' | sed 's/\://g' | sort | uniq)"
+		check="$(echo "$ports" | grep "$port")"
+
+		if [[ "$check" != "" ]]; then
+			port=$((port+1))
+		else
+			break
+		fi
+		sleep 1
+	done
+  echo "$port"
+}
+
+
+#---  FUNCTION  ----------------------------------------------------------------
+#          NAME:  hadoop::config
+#   DESCRIPTION:  
+#    PARAMETERS:  
+#       RETURNS:  
+#-------------------------------------------------------------------------------
+hadoop::config() {
+  local node="$1"
+  local port="$2"
+  local hdfs="hdfs://${node}:${port}/"
+
+  echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
+<configuration>
+    <property>
+        <name>fs.defaultFS</name>
+        <value>${hdfs}</value>
+    </property>
+</configuration>" > ${HADOOP_CONF_DIR}/core-site.xml
+}
+
+#---  FUNCTION  ----------------------------------------------------------------
+#          NAME:  hadoop::start_master
+#   DESCRIPTION:  
+#    PARAMETERS:  
+#       RETURNS:  
+#-------------------------------------------------------------------------------
+hadoop::start_master() {
+  ${HADOOP_PREFIX}/bin/hdfs namenode -format -force &>${HADOOP_LOG_DIR}/master_format.log
+  ${HADOOP_PREFIX}/bin/hdfs namenode &>${HADOOP_LOG_DIR}/master.log
+}
+
+#---  FUNCTION  ----------------------------------------------------------------
+#          NAME:  hadoop::start_slave
+#   DESCRIPTION:  
+#    PARAMETERS:  
+#       RETURNS:  
+#-------------------------------------------------------------------------------
+hadoop::start_slave() {
+  local hdfs="$1"
+ 
+  ${HADOOP_PREFIX}/bin/hdfs namenode -fs ${hdfs} &>${HADOOP_LOG_DIR}/slave.log
+}
+
+#---  FUNCTION  ----------------------------------------------------------------
 #          NAME:  spark::start_master
 #   DESCRIPTION:  Starts the spark master
 #    PARAMETERS:  NONE
@@ -189,6 +256,9 @@ main() {
   local wait_time="$(slurm::walltime_to_min "$SLURM_WALLTIME")"
 
   if grep -q ${HOSTNAME} ${SPARK_CONF_DIR}/masters; then
+    local hadoop_port="$(hadoop::choose_port "${HADOOP_PORT}")"
+    hadoop::config "${HOSTNAME}" "${hadoop_port}"
+    hadoop::start_master
     spark::start_master
     spark::wait_for_master
     spark::get_set_info

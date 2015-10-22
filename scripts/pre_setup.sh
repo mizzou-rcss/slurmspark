@@ -54,12 +54,16 @@ make::dirs() {
   fi
   if [[ ! -d ${HADOOP_HDFS_HOME} ]]; then
     mkdir -p ${HADOOP_HDFS_HOME}
+    ln -sf ${HADOOP_HDFS_HOME} /tmp/hadoop-${USER}
   fi
   if [[ ! -d ${HADOOP_MAPRED_HOME} ]]; then
     mkdir -p ${HADOOP_MAPRED_HOME}
   fi
   if [[ ! -d ${HADOOP_YARN_HOME} ]]; then
     mkdir -p ${HADOOP_YARN_HOME}
+  fi
+  if [[ ! -d ${HADOOP_LOG_DIR} ]]; then
+    mkdir -p ${HADOOP_LOG_DIR}
   fi
 }
 
@@ -118,6 +122,7 @@ spark::env_config() {
 #       RETURNS:  NONE
 #-------------------------------------------------------------------------------
 spark::env_export() {
+  export JAVA_HOME=${JAVA_HOME}
   export SPARK_LOG_DIR=${SPARK_LOG_DIR}
   export SPARK_CONF_DIR=${SPARK_CONF_DIR}
   export SPARK_MASTER_IP=${SPARK_MASTER_IP}
@@ -127,9 +132,10 @@ spark::env_export() {
   export SPARK_WORKER_MEMORY=${SPARK_WORKER_MEMORY}
   export SPARK_LOCAL_DIRS=${SPARK_LOCAL_DIRS}
   export SPARK_WORKER_DIR=${SPARK_WORKER_DIR}
-  export HADOOP_HOME=${HADOOP_HOME}
+  export HADOOP_PREFIX=${HADOOP_PREFIX}
   export HADOOP_COMMON=${HADOOP_COMMON}
   export HADOOP_CONF_DIR=${HADOOP_CONF_DIR}
+  export HADOOP_LOG_DIR=${HADOOP_LOG_DIR}
   export HADOOP_HDFS_HOME=${HADOOP_HDFS_HOME}
   export HADOOP_MAPRED_HOME=${HADOOP_MAPRED_HOME}
   export HADOOP_YARN_HOME=${HADOOP_YARN_HOME}

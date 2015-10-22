@@ -119,9 +119,11 @@ SPARK_WORKER_WEBUI_PORT="8081"
 #-------------------------------------------------------------------------------
 #  CONFIG HADOOP
 #-------------------------------------------------------------------------------
+HADOOP_PORT="9090"
 HADOOP_VERSION="2.6.1"
+HADOOP_LOG_DIR="${SCRATCH_DIR}/logs/hadoop/${SLURM_JOB_ID}"
 HADOOP_BINARY_PREFIX="/share/sw/hadoop"
-HADOOP_HOME="${HADOOP_BINARY_PREFIX}/hadoop-${HADOOP_VERSION}"
+HADOOP_PREFIX="${HADOOP_BINARY_PREFIX}/hadoop-${HADOOP_VERSION}"
 HADOOP_COMMON="${HADOOP_BINARY_PREFIX}/hadoop-${HADOOP_VERSION}"
 HADOOP_CONF_DIR="${SCRATCH_DIR}/conf/hadoop/${SLURM_JOB_ID}"
 HADOOP_HDFS_HOME="/local/scratch/${USER}/hadoop/${SLURM_JOB_ID}"
