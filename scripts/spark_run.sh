@@ -201,6 +201,9 @@ spark::get_set_info() {
   local spark_ui_url=$(grep "Started MasterWebUI at" $master_log \
                        | grep -iIohE 'https?://[^[:space:]]+')
   local hdfs=$(sed -e 's/<[^>]*>//g' ${HADOOP_CONF_DIR}/core-site.xml | grep -o 'hdfs.*')
+  local hdfs_web_port=$(grep "Starting Web-server for hdfs at:" ${HADOOP_LOG_DIR}/${spark_master_ip}_master.log \
+                        | grep -o "http.*" | awk -F\: '{print $3}')
+  local hdfs_web_url="http://${spark_master_ip}:${hdfs_web_port}/"
 
   export SPARK_MASTER_IP=${spark_master_ip}
   export SPARK_MASTER_PORT=${spark_master_port}
@@ -208,6 +211,7 @@ spark::get_set_info() {
   export SPARK_MASTER_WEBUI_PORT=${spark_ui_port}
   export SPARK_UI_URL=${spark_ui_url}
   export HDFS_LOCATION=${hdfs}
+  export HDFS_WEB_URL=${hdfs_web_url}
   
 }
 
@@ -249,13 +253,15 @@ spark::print_info() {
   echo "# HDFS INFO"
   echo "#-------------------------------------------------------------------------------"
   echo "    Location : ${HDFS_LOCATION}"
+  echo "   WebUI URL : ${HDFS_WEB_URL}"
   echo "#-------------------------------------------------------------------------------"
   echo ""
   echo "#-------------------------------------------------------------------------------"
   echo "# HDFS EXAMPLE"
   echo "#-------------------------------------------------------------------------------"
+  echo "export JAVA_HOME=${JAVA_HOME}"
   echo "export HADOOP_PREFIX=${HADOOP_PREFIX}"
-  echo "export PATH=${HADOOP_PREFIX}/bin:$PATH"
+  echo "export PATH=${HADOOP_PREFIX}/bin:\$PATH"
   echo "export HADOOP_CONF_DIR=${HADOOP_CONF_DIR}"
   echo "hadoop fs -mkdir /test1"
   echo "hadoop fs -ls /"
