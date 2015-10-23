@@ -135,11 +135,13 @@ spark::env_export() {
   export HADOOP_PREFIX=${HADOOP_PREFIX}
   export HADOOP_COMMON=${HADOOP_COMMON}
   export HADOOP_CONF_DIR=${HADOOP_CONF_DIR}
+  export HADOOP_PID_DIR=${HADOOP_PID_DIR}
   export HADOOP_LOG_DIR=${HADOOP_LOG_DIR}
   export HADOOP_HDFS_HOME=${HADOOP_HDFS_HOME}
   export HADOOP_MAPRED_HOME=${HADOOP_MAPRED_HOME}
   export HADOOP_YARN_HOME=${HADOOP_YARN_HOME}
-  export PATH=${HADOOP_PREFIX}/bin:$PATH
+  export HADOOP_COMMON_LIB_NATIVE_DIR=${HADOOP_COMMON_LIB_NATIVE_DIR}
+  export HADOOP_OPTS=${HADOOP_OPTS}
 }
 
 #---  FUNCTION  ----------------------------------------------------------------
@@ -154,11 +156,11 @@ main() {
   
   if [[ "$SLURM_NODEID" == "0" ]]; then
     spark::set_rank "$SLURM_JOB_NODELIST" "true"
-    spark::env_export
   else
     spark::set_rank "$SLURM_JOB_NODELIST" "false"
-    spark::env_export
   fi
+  
+  spark::env_export
 
   ## For Debugging
   env > ${SPARK_LOG_DIR}/$(hostname).pre.env

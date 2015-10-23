@@ -63,6 +63,8 @@ hadoop::config() {
   local port="$2"
   local hdfs="hdfs://${node}:${port}/"
 
+  cp -R ${HADOOP_PREFIX}/etc/hadoop/* ${HADOOP_CONF_DIR}/
+
   echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
 <configuration>
     <property>
@@ -79,8 +81,9 @@ hadoop::config() {
 #       RETURNS:  
 #-------------------------------------------------------------------------------
 hadoop::start_master() {
+  env > ${HADOOP_LOG_DIR}/$(hostname).run.env
   ${HADOOP_PREFIX}/bin/hdfs namenode -format -force &>${HADOOP_LOG_DIR}/master_format.log
-  ${HADOOP_PREFIX}/bin/hdfs namenode &>${HADOOP_LOG_DIR}/master.log
+  #${HADOOP_PREFIX}/bin/hdfs namenode &>${HADOOP_LOG_DIR}/master.log
 }
 
 #---  FUNCTION  ----------------------------------------------------------------
@@ -259,15 +262,16 @@ main() {
     local hadoop_port="$(hadoop::choose_port "${HADOOP_PORT}")"
     hadoop::config "${HOSTNAME}" "${hadoop_port}"
     hadoop::start_master
-    spark::start_master
-    spark::wait_for_master
-    spark::get_set_info
-    spark::start_slave "$((${SPARK_WORKER_CORES} - 1))"
-    spark::print_info
+    #spark::start_master
+    #spark::wait_for_master
+    #spark::get_set_info
+    #spark::start_slave "$((${SPARK_WORKER_CORES} - 1))"
+    #spark::print_info
   else
-    spark::wait_for_master
-    spark::get_set_info
-    spark::start_slave "${SPARK_WORKER_CORES}"
+    echo "Placeholder for nodes"
+    #spark::wait_for_master
+    #spark::get_set_info
+    #spark::start_slave "${SPARK_WORKER_CORES}"
   fi
 
   ## For Debugging
