@@ -139,6 +139,7 @@ spark::env_export() {
   export HADOOP_HDFS_HOME=${HADOOP_HDFS_HOME}
   export HADOOP_MAPRED_HOME=${HADOOP_MAPRED_HOME}
   export HADOOP_YARN_HOME=${HADOOP_YARN_HOME}
+  export PATH=${HADOOP_PREFIX}/bin:$PATH
 }
 
 #---  FUNCTION  ----------------------------------------------------------------
