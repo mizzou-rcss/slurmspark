@@ -54,7 +54,7 @@ make::dirs() {
   fi
   if [[ ! -d ${HADOOP_HDFS_HOME} ]]; then
     mkdir -p ${HADOOP_HDFS_HOME}
-    ln -sf ${HADOOP_HDFS_HOME} /tmp/hadoop-${USER}
+    ln -snf ${HADOOP_HDFS_HOME} /tmp/hadoop-${USER}
   fi
   if [[ ! -d ${HADOOP_MAPRED_HOME} ]]; then
     mkdir -p ${HADOOP_MAPRED_HOME}
