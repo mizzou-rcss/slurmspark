@@ -30,9 +30,10 @@ HOSTNAME="$(hostname -s)"
 #-------------------------------------------------------------------------------
 #---  FUNCTION  ----------------------------------------------------------------
 #          NAME:  hadoop::choose_port
-#   DESCRIPTION:  
-#    PARAMETERS:  
-#       RETURNS:  
+#   DESCRIPTION:  Based on the port supplied, check to ensure it is not already
+#                 in use.  If it is, add 1 to port and try again.
+#    PARAMETERS:  $1 : port
+#       RETURNS:  Echos port
 #-------------------------------------------------------------------------------
 hadoop::choose_port() {
   local port="$1"
@@ -51,12 +52,12 @@ hadoop::choose_port() {
   echo "$port"
 }
 
-
 #---  FUNCTION  ----------------------------------------------------------------
 #          NAME:  hadoop::config
-#   DESCRIPTION:  
-#    PARAMETERS:  
-#       RETURNS:  
+#   DESCRIPTION:  Writes the core-site.xml file using supplied node and port 
+#    PARAMETERS:  $1 : node to be the hdfs master
+#                 $2 : port to listen on
+#       RETURNS:  NONE
 #-------------------------------------------------------------------------------
 hadoop::config() {
   local node="$1"
@@ -75,27 +76,44 @@ hadoop::config() {
 }
 
 #---  FUNCTION  ----------------------------------------------------------------
+#          NAME:  hadoop::wait_for_config
+#   DESCRIPTION:  Wait for the slurmspark modified core-site.xml to be populated
+#    PARAMETERS:  NONE
+#       RETURNS:  NONE
+#-------------------------------------------------------------------------------
+hadoop::wait_for_config() {
+  local config="${HADOOP_CONF_DIR}/core-site.xml"
+
+  while true; do
+    if grep -q "fs.defaultFS" $config 2>/dev/null; then
+      break
+    fi
+    sleep 0.5
+  done
+}
+
+#---  FUNCTION  ----------------------------------------------------------------
 #          NAME:  hadoop::start_master
-#   DESCRIPTION:  
-#    PARAMETERS:  
-#       RETURNS:  
+#   DESCRIPTION:  Start the hdfs master
+#    PARAMETERS:  NONE
+#       RETURNS:  NONE
 #-------------------------------------------------------------------------------
 hadoop::start_master() {
   env > ${HADOOP_LOG_DIR}/$(hostname).run.env
-  ${HADOOP_PREFIX}/bin/hdfs namenode -format -force &>${HADOOP_LOG_DIR}/master_format.log
-  #${HADOOP_PREFIX}/bin/hdfs namenode &>${HADOOP_LOG_DIR}/master.log
+  ${HADOOP_PREFIX}/bin/hdfs namenode -format -force &>${HADOOP_LOG_DIR}/${HOSTNAME}_master_format.log
+  ${HADOOP_PREFIX}/bin/hdfs namenode &>${HADOOP_LOG_DIR}/${HOSTNAME}_master.log &
 }
 
 #---  FUNCTION  ----------------------------------------------------------------
 #          NAME:  hadoop::start_slave
-#   DESCRIPTION:  
-#    PARAMETERS:  
-#       RETURNS:  
+#   DESCRIPTION:  Start the hdfs slave
+#    PARAMETERS:  NONE
+#       RETURNS:  NONE
 #-------------------------------------------------------------------------------
 hadoop::start_slave() {
-  local hdfs="$1"
+  local hdfs="$(sed -e 's/<[^>]*>//g' ${HADOOP_CONF_DIR}/core-site.xml | grep -o 'hdfs.*')"
  
-  ${HADOOP_PREFIX}/bin/hdfs namenode -fs ${hdfs} &>${HADOOP_LOG_DIR}/slave.log
+  ${HADOOP_PREFIX}/bin/hdfs datanode -fs ${hdfs} &>${HADOOP_LOG_DIR}/${HOSTNAME}_slave.log &
 }
 
 #---  FUNCTION  ----------------------------------------------------------------
@@ -108,7 +126,7 @@ spark::start_master() {
   ${SPARK_HOME}/sbin/spark-daemon.sh start org.apache.spark.deploy.master.Master 1 \
     --ip $SPARK_MASTER_IP \
     --port $SPARK_MASTER_PORT \
-    --webui-port $SPARK_MASTER_WEBUI_PORT &>/dev/null
+    --webui-port $SPARK_MASTER_WEBUI_PORT &>/dev/null &
 }
 
 #---  FUNCTION  ----------------------------------------------------------------
@@ -123,7 +141,7 @@ spark::start_slave() {
   SPARK_WORKER_CORES=${spark_worker_cores} ${SPARK_HOME}/sbin/spark-daemon.sh \
     start org.apache.spark.deploy.worker.Worker 1 \
     --webui-port ${SPARK_WORKER_WEBUI_PORT} \
-    "spark://${SPARK_MASTER_IP}:${SPARK_MASTER_PORT}" &>/dev/null
+    "spark://${SPARK_MASTER_IP}:${SPARK_MASTER_PORT}" &>/dev/null &
 }
 
 #---  FUNCTION  ----------------------------------------------------------------
@@ -137,25 +155,25 @@ spark::wait_for_master() {
   local master_log="${SPARK_LOG_DIR}/*master.Master*.out"
 
   while true; do
-    if grep -q "INFO Utils: Successfully started service 'sparkMaster' on port" $master_log 2>/dev/null; then
+    if grep -q "Successfully started service 'sparkMaster' on port" $master_log 2>/dev/null; then
       break
     fi
     sleep 0.5
   done
   while true; do
-    if grep -q "INFO Utils: Successfully started service on port" $master_log 2>/dev/null; then
+    if grep -q "Successfully started service on port" $master_log 2>/dev/null; then
       break
     fi
     sleep 0.5
   done
   while true; do
-    if grep -q "INFO Utils: Successfully started service 'MasterUI' on port" $master_log 2>/dev/null; then
+    if grep -q "Successfully started service 'MasterUI' on port" $master_log 2>/dev/null; then
       break
     fi
     sleep 0.5
   done
   while true; do
-    if grep -q "INFO MasterWebUI: Started MasterWebUI at" $master_log 2>/dev/null; then
+    if grep -q "Started MasterWebUI at" $master_log 2>/dev/null; then
       break
     fi
     sleep 0.5
@@ -174,20 +192,23 @@ spark::get_set_info() {
  
   local spark_master_ip="$(cat ${SPARK_CONF_DIR}/masters | head -n 1)"
 
-  local spark_master_port=$(grep "INFO Utils: Successfully started service 'sparkMaster' on port" $master_log \
+  local spark_master_port=$(grep "Successfully started service 'sparkMaster' on port" $master_log \
                             | awk -F 'port ' '{print $2}' | sed 's/\.$//g')
-  local spark_service_port=$(grep "INFO Utils: Successfully started service on port" $master_log \
+  local spark_service_port=$(grep "Successfully started service on port" $master_log \
                              | awk -F 'port ' '{print $2}' | sed 's/\.$//g')
-  local spark_ui_port=$(grep "INFO Utils: Successfully started service 'MasterUI' on port" $master_log \
+  local spark_ui_port=$(grep "Successfully started service 'MasterUI' on port" $master_log \
                         | awk -F 'port ' '{print $2}' | sed 's/\.$//g')
-  local spark_ui_url=$(grep "INFO MasterWebUI: Started MasterWebUI at" $master_log \
+  local spark_ui_url=$(grep "Started MasterWebUI at" $master_log \
                        | grep -iIohE 'https?://[^[:space:]]+')
-  
+  local hdfs=$(sed -e 's/<[^>]*>//g' ${HADOOP_CONF_DIR}/core-site.xml | grep -o 'hdfs.*')
+
   export SPARK_MASTER_IP=${spark_master_ip}
   export SPARK_MASTER_PORT=${spark_master_port}
   export SPARK_SERVICE_PORT=${spark_service_port}
   export SPARK_MASTER_WEBUI_PORT=${spark_ui_port}
   export SPARK_UI_URL=${spark_ui_url}
+  export HDFS_LOCATION=${hdfs}
+  
 }
 
 #---  FUNCTION  ----------------------------------------------------------------
@@ -224,6 +245,21 @@ spark::print_info() {
   echo "  ${SPARK_HOME}/bin/run-example \"org.apache.spark.examples.SparkPi\" \"2\""
   echo "#-------------------------------------------------------------------------------"
   echo ""
+  echo "#-------------------------------------------------------------------------------"
+  echo "# HDFS INFO"
+  echo "#-------------------------------------------------------------------------------"
+  echo "    Location : ${HDFS_LOCATION}"
+  echo "#-------------------------------------------------------------------------------"
+  echo ""
+  echo "#-------------------------------------------------------------------------------"
+  echo "# HDFS EXAMPLE"
+  echo "#-------------------------------------------------------------------------------"
+  echo "export HADOOP_PREFIX=${HADOOP_PREFIX}"
+  echo "export PATH=${HADOOP_PREFIX}/bin:$PATH"
+  echo "export HADOOP_CONF_DIR=${HADOOP_CONF_DIR}"
+  echo "hadoop fs -mkdir /test1"
+  echo "hadoop fs -ls /"
+  echo "#-------------------------------------------------------------------------------"
 }
 
 #---  FUNCTION  ----------------------------------------------------------------
@@ -256,22 +292,41 @@ spark::print_debug() {
 #       RETURNS:  NONE
 #-------------------------------------------------------------------------------
 main() {
+  ## Set the wait_time to determined wall time
   local wait_time="$(slurm::walltime_to_min "$SLURM_WALLTIME")"
 
+  ## If we are the 'master' node, start master services
   if grep -q ${HOSTNAME} ${SPARK_CONF_DIR}/masters; then
+    ## Ensure our hadoop port is not in use
     local hadoop_port="$(hadoop::choose_port "${HADOOP_PORT}")"
+    ## Set the core-site.xml for our hdfs cluster
     hadoop::config "${HOSTNAME}" "${hadoop_port}"
+    ## Start the hdfs master
     hadoop::start_master
-    #spark::start_master
-    #spark::wait_for_master
-    #spark::get_set_info
-    #spark::start_slave "$((${SPARK_WORKER_CORES} - 1))"
-    #spark::print_info
+
+    ## Start the master Spark service
+    spark::start_master
+    ## Wait for the service to be up
+    spark::wait_for_master
+    ## Get and export service info for use in info messages etc..
+    spark::get_set_info
+    ## Start the slave, using one less core than allocated
+    spark::start_slave "$((${SPARK_WORKER_CORES} - 1))"
+    ## Print info on the cluster
+    spark::print_info
+  ## If we are not the master node, start slave services
   else
-    echo "Placeholder for nodes"
-    #spark::wait_for_master
-    #spark::get_set_info
-    #spark::start_slave "${SPARK_WORKER_CORES}"
+    ## Wait for the core-site.xml to be written
+    hadoop::wait_for_config
+    ## Start the hdfs slaves
+    hadoop::start_slave
+    
+    ## Wait for the Spark master to start on the master node 
+    spark::wait_for_master
+    ## Get and export service info for use in info messages etc..
+    spark::get_set_info
+    ## Start the slave
+    spark::start_slave "${SPARK_WORKER_CORES}"
   fi
 
   ## For Debugging
