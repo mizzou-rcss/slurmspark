@@ -14,13 +14,18 @@
 #        AUTHOR: Micheal Quinn (), quinnm@missouri.edu
 #  ORGANIZATION: RCSS
 #       CREATED: 10/06/2015 03:54:47 PM CDT
-#      REVISION: 0.1
+#      REVISION: 1.0
 #===============================================================================
 set -o nounset                              # Treat unset variables as an error
 
 #-------------------------------------------------------------------------------
 # CONFIG (Modifiable)
 #-------------------------------------------------------------------------------
+## Directory for shared scratch.
+##     Notes: Directory must be accessible from every node in the cluster
+##            This directory will contain your job-specific spark configs, logs, etc...
+SCRATCH_DIR="${HOME}/sparkscratch"
+
 ## Java Version to use
 ##   Options: 1.7.0
 ##            1.8.0
@@ -69,10 +74,6 @@ JAVA_VERSION="1.7.0"
 ##             You can download spark from http://spark.apache.org/downloads.html
 SPARK_BINARY_PREFIX="/share/sw/spark"
 
-## Directory for shared scratch.
-##     Notes: Directory must be accessible from every node in the cluster
-##            This directory will contain your job-specific spark configs, logs, etc...
-SPARK_SCRATCH_DIR="${HOME}/sparkscratch"
 
 ## Spark and Hadoop Version to use
 ##   Options: When using system's install, these values must match what a version
@@ -95,11 +96,11 @@ SPARK_HADOOP_VERSION="2.6"
 ##   Options: Valid path to directory shared between nodes
 ##     Notes: Needs to be writable by your user.
 ##
-SPARK_LOG_DIR="${SPARK_SCRATCH_DIR}/logs/${SLURM_JOB_ID}"
-SPARK_CONF_DIR="${SPARK_SCRATCH_DIR}/conf/${SLURM_JOB_ID}"
-SPARK_PID_DIR="${SPARK_SCRATCH_DIR}/pid/${SLURM_JOB_ID}"
-SPARK_LOCAL_DIRS="${SPARK_SCRATCH_DIR}/local/${SLURM_JOB_ID}"
-SPARK_WORKER_DIR="${SPARK_SCRATCH_DIR}/worker/${SLURM_JOB_ID}"
+SPARK_LOG_DIR="${SCRATCH_DIR}/logs/spark/${SLURM_JOB_ID}"
+SPARK_CONF_DIR="${SCRATCH_DIR}/conf/spark/${SLURM_JOB_ID}"
+SPARK_PID_DIR="${SCRATCH_DIR}/pid/spark/${SLURM_JOB_ID}"
+SPARK_LOCAL_DIRS="${SCRATCH_DIR}/local/sprak/${SLURM_JOB_ID}"
+SPARK_WORKER_DIR="${SCRATCH_DIR}/worker/spark/${SLURM_JOB_ID}"
 
 ## Spark ( MASTER | MASTER_WEBUI | WORKER_WEBUI ) Port
 ##   Options: (any port greater than 1000 that is not in use)
@@ -114,6 +115,23 @@ SPARK_WORKER_DIR="${SPARK_SCRATCH_DIR}/worker/${SLURM_JOB_ID}"
 SPARK_MASTER_PORT="7077"
 SPARK_MASTER_WEBUI_PORT="8080"
 SPARK_WORKER_WEBUI_PORT="8081"
+
+#-------------------------------------------------------------------------------
+#  CONFIG HADOOP
+#-------------------------------------------------------------------------------
+HADOOP_PORT="9090"
+HADOOP_VERSION="2.6.1"
+HADOOP_LOG_DIR="${SCRATCH_DIR}/logs/hadoop/${SLURM_JOB_ID}"
+HADOOP_PID_DIR="${SCRATCH_DIR}/pid/hadoop/${SLURM_JOB_ID}"
+HADOOP_BINARY_PREFIX="/share/sw/hadoop"
+HADOOP_PREFIX="${HADOOP_BINARY_PREFIX}/hadoop-${HADOOP_VERSION}"
+HADOOP_COMMON="${HADOOP_BINARY_PREFIX}/hadoop-${HADOOP_VERSION}"
+HADOOP_CONF_DIR="${SCRATCH_DIR}/conf/hadoop/${SLURM_JOB_ID}"
+HADOOP_HDFS_HOME="/local/scratch/${USER}/hadoop/${SLURM_JOB_ID}"
+HADOOP_MAPRED_HOME="/local/scratch/${USER}/hadoop/${SLURM_JOB_ID}"
+HADOOP_YARN_HOME="/local/scratch/${USER}/hadoop/${SLURM_JOB_ID}"
+HADOOP_COMMON_LIB_NATIVE_DIR="${HADOOP_PREFIX}/lib/native"
+HADOOP_OPTS="-Djava.library.path=${HADOOP_PREFIX}/lib"
 
 #-------------------------------------------------------------------------------
 # CONFIG (DO NOT MODIFY!!)

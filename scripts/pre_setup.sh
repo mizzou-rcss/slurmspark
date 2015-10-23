@@ -14,7 +14,7 @@
 #        AUTHOR: Micheal Quinn (), quinnm@missouri.edu
 #  ORGANIZATION: RCSS
 #       CREATED: 10/06/2015 03:57:31 PM CDT
-#      REVISION: 0.1
+#      REVISION: 1.0
 #===============================================================================
 
 set -o nounset                              # Treat unset variables as an error
@@ -48,6 +48,22 @@ make::dirs() {
   fi
   if [[ ! -d ${SPARK_WORKER_DIR} ]]; then
     mkdir -p ${SPARK_WORKER_DIR}
+  fi
+  if [[ ! -d ${HADOOP_CONF_DIR} ]]; then
+    mkdir -p ${HADOOP_CONF_DIR}
+  fi
+  if [[ ! -d ${HADOOP_HDFS_HOME} ]]; then
+    mkdir -p ${HADOOP_HDFS_HOME}
+    ln -snf ${HADOOP_HDFS_HOME} /tmp/hadoop-${USER}
+  fi
+  if [[ ! -d ${HADOOP_MAPRED_HOME} ]]; then
+    mkdir -p ${HADOOP_MAPRED_HOME}
+  fi
+  if [[ ! -d ${HADOOP_YARN_HOME} ]]; then
+    mkdir -p ${HADOOP_YARN_HOME}
+  fi
+  if [[ ! -d ${HADOOP_LOG_DIR} ]]; then
+    mkdir -p ${HADOOP_LOG_DIR}
   fi
 }
 
@@ -106,6 +122,7 @@ spark::env_config() {
 #       RETURNS:  NONE
 #-------------------------------------------------------------------------------
 spark::env_export() {
+  export JAVA_HOME=${JAVA_HOME}
   export SPARK_LOG_DIR=${SPARK_LOG_DIR}
   export SPARK_CONF_DIR=${SPARK_CONF_DIR}
   export SPARK_MASTER_IP=${SPARK_MASTER_IP}
@@ -115,6 +132,16 @@ spark::env_export() {
   export SPARK_WORKER_MEMORY=${SPARK_WORKER_MEMORY}
   export SPARK_LOCAL_DIRS=${SPARK_LOCAL_DIRS}
   export SPARK_WORKER_DIR=${SPARK_WORKER_DIR}
+  export HADOOP_PREFIX=${HADOOP_PREFIX}
+  export HADOOP_CONF_DIR=${HADOOP_CONF_DIR}
+  export HADOOP_PID_DIR=${HADOOP_PID_DIR}
+  export HADOOP_LOG_DIR=${HADOOP_LOG_DIR}
+  #export HADOOP_COMMON=${HADOOP_COMMON}
+  #export HADOOP_HDFS_HOME=${HADOOP_HDFS_HOME}
+  #export HADOOP_MAPRED_HOME=${HADOOP_MAPRED_HOME}
+  #export HADOOP_YARN_HOME=${HADOOP_YARN_HOME}
+  #export HADOOP_COMMON_LIB_NATIVE_DIR=${HADOOP_COMMON_LIB_NATIVE_DIR}
+  #export HADOOP_OPTS=${HADOOP_OPTS}
 }
 
 #---  FUNCTION  ----------------------------------------------------------------
@@ -129,11 +156,11 @@ main() {
   
   if [[ "$SLURM_NODEID" == "0" ]]; then
     spark::set_rank "$SLURM_JOB_NODELIST" "true"
-    spark::env_export
   else
     spark::set_rank "$SLURM_JOB_NODELIST" "false"
-    spark::env_export
   fi
+  
+  spark::env_export
 
   ## For Debugging
   env > ${SPARK_LOG_DIR}/$(hostname).pre.env

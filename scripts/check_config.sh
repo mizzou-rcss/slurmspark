@@ -14,7 +14,7 @@
 #        AUTHOR: Micheal Quinn (), quinnm@missouri.edu
 #  ORGANIZATION: RCSS
 #       CREATED: 10/08/2015 09:28:19 AM CDT
-#      REVISION: 0.1
+#      REVISION: 1.0
 #===============================================================================
 set -o nounset                              # Treat unset variables as an error
 source ${SCRIPT_HOME}/config.sh
@@ -74,12 +74,12 @@ check::variables() {
     print::message "ERROR" "SPARK_BINARY_PREFIX must be a directory"
   fi
 
-  ## SPARK_SCRATCH_DIR
-  if [[ "$SPARK_SCRATCH_DIR" == "" ]]; then
-    print::message "ERROR" "SPARK_SCRATCH_DIR must be set"
+  ## SCRATCH_DIR
+  if [[ "$SCRATCH_DIR" == "" ]]; then
+    print::message "ERROR" "SCRATCH_DIR must be set"
   fi
-  if [[ ! -d "$SPARK_SCRATCH_DIR" ]]; then
-    print::message "ERROR" "SPARK_SCRATCH_DIR must be a directory"
+  if [[ ! -d "$SCRATCH_DIR" ]]; then
+    print::message "ERROR" "SCRATCH_DIR must be a directory"
   fi
 
   ## SPARK_VERSION
