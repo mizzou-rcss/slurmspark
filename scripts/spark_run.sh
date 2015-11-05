@@ -200,18 +200,26 @@ spark::get_set_info() {
                         | awk -F 'port ' '{print $2}' | sed 's/\.$//g')
   local spark_ui_url=$(grep "Started MasterWebUI at" $master_log \
                        | grep -iIohE 'https?://[^[:space:]]+')
-  local hdfs=$(sed -e 's/<[^>]*>//g' ${HADOOP_CONF_DIR}/core-site.xml | grep -o 'hdfs.*')
-  local hdfs_web_port=$(grep "Starting Web-server for hdfs at:" ${HADOOP_LOG_DIR}/${spark_master_ip}_master.log \
-                        | grep -o "http.*" | awk -F\: '{print $3}')
-  local hdfs_web_url="http://${spark_master_ip}:${hdfs_web_port}/"
+  
+  ## Only set HDFS items if we are setting up HDFS
+  if [[ "$HADOOP_SP_SETUP" == "true" ]]; then
+    local hdfs=$(sed -e 's/<[^>]*>//g' ${HADOOP_CONF_DIR}/core-site.xml | grep -o 'hdfs.*')
+    local hdfs_web_port=$(grep "Starting Web-server for hdfs at:" ${HADOOP_LOG_DIR}/${spark_master_ip}_master.log \
+                          | grep -o "http.*" | awk -F\: '{print $3}')
+    local hdfs_web_url="http://${spark_master_ip}:${hdfs_web_port}/"
+  fi
 
   export SPARK_MASTER_IP=${spark_master_ip}
   export SPARK_MASTER_PORT=${spark_master_port}
   export SPARK_SERVICE_PORT=${spark_service_port}
   export SPARK_MASTER_WEBUI_PORT=${spark_ui_port}
   export SPARK_UI_URL=${spark_ui_url}
-  export HDFS_LOCATION=${hdfs}
-  export HDFS_WEB_URL=${hdfs_web_url}
+  
+  ## Only export HDFS items if we are setting up HDFS
+  if [[ "$HADOOP_SP_SETUP" == "true" ]]; then
+    export HDFS_LOCATION=${hdfs}
+    export HDFS_WEB_URL=${hdfs_web_url}
+  fi
   
 }
 
@@ -249,23 +257,26 @@ spark::print_info() {
   echo "  ${SPARK_HOME}/bin/run-example \"org.apache.spark.examples.SparkPi\" \"2\""
   echo "#-------------------------------------------------------------------------------"
   echo ""
-  echo "#-------------------------------------------------------------------------------"
-  echo "# HDFS INFO"
-  echo "#-------------------------------------------------------------------------------"
-  echo "    Location : ${HDFS_LOCATION}"
-  echo "   WebUI URL : ${HDFS_WEB_URL}"
-  echo "#-------------------------------------------------------------------------------"
-  echo ""
-  echo "#-------------------------------------------------------------------------------"
-  echo "# HDFS EXAMPLE"
-  echo "#-------------------------------------------------------------------------------"
-  echo "export JAVA_HOME=${JAVA_HOME}"
-  echo "export HADOOP_PREFIX=${HADOOP_PREFIX}"
-  echo "export PATH=${HADOOP_PREFIX}/bin:\$PATH"
-  echo "export HADOOP_CONF_DIR=${HADOOP_CONF_DIR}"
-  echo "hadoop fs -mkdir /test1"
-  echo "hadoop fs -ls /"
-  echo "#-------------------------------------------------------------------------------"
+  ## Only print HDFS items if we are setting up HDFS
+  if [[ "$HADOOP_SP_SETUP" == "true" ]]; then
+    echo "#-------------------------------------------------------------------------------"
+    echo "# HDFS INFO"
+    echo "#-------------------------------------------------------------------------------"
+    echo "    Location : ${HDFS_LOCATION}"
+    echo "   WebUI URL : ${HDFS_WEB_URL}"
+    echo "#-------------------------------------------------------------------------------"
+    echo ""
+    echo "#-------------------------------------------------------------------------------"
+    echo "# HDFS EXAMPLE"
+    echo "#-------------------------------------------------------------------------------"
+    echo "export JAVA_HOME=${JAVA_HOME}"
+    echo "export HADOOP_PREFIX=${HADOOP_PREFIX}"
+    echo "export PATH=${HADOOP_PREFIX}/bin:\$PATH"
+    echo "export HADOOP_CONF_DIR=${HADOOP_CONF_DIR}"
+    echo "hadoop fs -mkdir /test1"
+    echo "hadoop fs -ls /"
+    echo "#-------------------------------------------------------------------------------"
+  fi
 }
 
 #---  FUNCTION  ----------------------------------------------------------------
@@ -303,12 +314,14 @@ main() {
 
   ## If we are the 'master' node, start master services
   if grep -q ${HOSTNAME} ${SPARK_CONF_DIR}/masters; then
-    ## Ensure our hadoop port is not in use
-    local hadoop_port="$(hadoop::choose_port "${HADOOP_PORT}")"
-    ## Set the core-site.xml for our hdfs cluster
-    hadoop::config "${HOSTNAME}" "${hadoop_port}"
-    ## Start the hdfs master
-    hadoop::start_master
+    if [[ "$HADOOP_SP_SETUP" == "true" ]]; then
+      ## Ensure our hadoop port is not in use
+      local hadoop_port="$(hadoop::choose_port "${HADOOP_PORT}")"
+      ## Set the core-site.xml for our hdfs cluster
+      hadoop::config "${HOSTNAME}" "${hadoop_port}"
+      ## Start the hdfs master
+      hadoop::start_master
+    fi
 
     ## Start the master Spark service
     spark::start_master
@@ -322,10 +335,12 @@ main() {
     spark::print_info
   ## If we are not the master node, start slave services
   else
-    ## Wait for the core-site.xml to be written
-    hadoop::wait_for_config
-    ## Start the hdfs slaves
-    hadoop::start_slave
+    if [[ "$HADOOP_SP_SETUP" == "true" ]]; then
+      ## Wait for the core-site.xml to be written
+      hadoop::wait_for_config
+      ## Start the hdfs slaves
+      hadoop::start_slave
+    fi
     
     ## Wait for the Spark master to start on the master node 
     spark::wait_for_master

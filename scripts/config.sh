@@ -119,6 +119,7 @@ SPARK_WORKER_WEBUI_PORT="8081"
 #-------------------------------------------------------------------------------
 #  CONFIG HADOOP
 #-------------------------------------------------------------------------------
+HADOOP_SP_SETUP="false"
 HADOOP_PORT="9090"
 HADOOP_VERSION="2.6.1"
 HADOOP_LOG_DIR="${SCRATCH_DIR}/logs/hadoop/${SLURM_JOB_ID}"
