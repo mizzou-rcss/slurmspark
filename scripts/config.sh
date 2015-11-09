@@ -119,14 +119,31 @@ SPARK_WORKER_WEBUI_PORT="8081"
 #-------------------------------------------------------------------------------
 #  CONFIG HADOOP
 #-------------------------------------------------------------------------------
+## Hadoop Setup
+##    Options: true or false
+##             If true, set up an hdfs cluster along with the spark cluster
+##             If false, only setup a spark cluster
+HADOOP_SP_SETUP="false"
+
+## Initial port to attempt to bind hadoop to
 HADOOP_PORT="9090"
+
+## Version of haddoop to use
 HADOOP_VERSION="2.6.1"
+
+## Directories to store Hadoop logs, pids, and conf
 HADOOP_LOG_DIR="${SCRATCH_DIR}/logs/hadoop/${SLURM_JOB_ID}"
 HADOOP_PID_DIR="${SCRATCH_DIR}/pid/hadoop/${SLURM_JOB_ID}"
-HADOOP_BINARY_PREFIX="/share/sw/hadoop"
-HADOOP_PREFIX="${HADOOP_BINARY_PREFIX}/hadoop-${HADOOP_VERSION}"
-HADOOP_COMMON="${HADOOP_BINARY_PREFIX}/hadoop-${HADOOP_VERSION}"
 HADOOP_CONF_DIR="${SCRATCH_DIR}/conf/hadoop/${SLURM_JOB_ID}"
+
+## Location of the hadoop binaries.  Similar logic to SPARK_BINARY_PREFIX
+HADOOP_BINARY_PREFIX="/share/sw/hadoop"
+
+## Full path to hadoop install based on the HADOOP_BINARY_PREFIX setting
+HADOOP_PREFIX="${HADOOP_BINARY_PREFIX}/hadoop-${HADOOP_VERSION}"
+
+## Currently unused
+HADOOP_COMMON="${HADOOP_BINARY_PREFIX}/hadoop-${HADOOP_VERSION}"
 HADOOP_HDFS_HOME="/local/scratch/${USER}/hadoop/${SLURM_JOB_ID}"
 HADOOP_MAPRED_HOME="/local/scratch/${USER}/hadoop/${SLURM_JOB_ID}"
 HADOOP_YARN_HOME="/local/scratch/${USER}/hadoop/${SLURM_JOB_ID}"
