@@ -123,6 +123,9 @@ spark::env_config() {
 #-------------------------------------------------------------------------------
 spark::env_export() {
   export JAVA_HOME=${JAVA_HOME}
+  PATH=${JAVA_HOME}:${PATH}
+  export PATH=${PATH}
+
   export SPARK_LOG_DIR=${SPARK_LOG_DIR}
   export SPARK_CONF_DIR=${SPARK_CONF_DIR}
   export SPARK_MASTER_IP=${SPARK_MASTER_IP}

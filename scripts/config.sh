@@ -26,10 +26,14 @@ set -o nounset                              # Treat unset variables as an error
 ##            This directory will contain your job-specific spark configs, logs, etc...
 SCRATCH_DIR="${HOME}/sparkscratch"
 
+## DEPRECATED
 ## Java Version to use
 ##   Options: 1.7.0
 ##            1.8.0
-JAVA_VERSION="1.7.0"
+#JAVA_VERSION="1.7.0"
+
+## Java home directory
+JAVA_HOME="/usr/lib/jvm/java-1.7.0-openjdk-1.7.0.79-2.5.5.1.el7_1.x86_64/jre"
 
 ## Spark Binary Prefix
 ##   Options: Valid path to a directory containing spark installs
@@ -156,8 +160,6 @@ HADOOP_OPTS="-Djava.library.path=${HADOOP_PREFIX}/lib"
 ## Hostname of system this script is run on
 HOSTNAME="$(hostname -s)"
 
-## Java home directory.  Uses JAVA_VERSION set above.
-JAVA_HOME="/usr/lib/jvm/java-${JAVA_VERSION}"
 
 ## Determine the walltime of the job.  This is used to determine how long 
 ## spark-run.sh will wait before exiting.
