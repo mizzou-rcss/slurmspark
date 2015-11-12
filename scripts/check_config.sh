@@ -61,10 +61,11 @@ print::message() {
 #       RETURNS:  NONE
 #-------------------------------------------------------------------------------
 check::variables() {
+  ## DEPRECATED
   ## JAVA_VERSION
-  if [[ "$JAVA_VERSION" == "" ]]; then
-    print::message "ERROR" "JAVA_VERSION must be set"
-  fi
+  #if [[ "$JAVA_VERSION" == "" ]]; then
+  #  print::message "ERROR" "JAVA_VERSION must be set"
+  #fi
 
   ## SPARK_BINARY_PREFIX
   if [[ "$SPARK_BINARY_PREFIX" == "" ]]; then
