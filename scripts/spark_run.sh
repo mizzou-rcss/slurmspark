@@ -252,7 +252,7 @@ spark::print_info() {
   echo "#-------------------------------------------------------------------------------"
   echo "Calculating Pi"
   echo "  export MASTER=\"spark://${SPARK_MASTER_IP}:${SPARK_MASTER_PORT}\""
-  echo "  export SPARK_EXECUTOR_MEMORY=\"5g\""
+  echo "  export SPARK_EXECUTOR_MEMORY=\"1g\""
   echo "  export SPARK_LOCAL_DIRS=\"${SPARK_LOCAL_DIRS}\""
   echo "  ${SPARK_HOME}/bin/run-example \"org.apache.spark.examples.SparkPi\" \"2\""
   echo "#-------------------------------------------------------------------------------"
