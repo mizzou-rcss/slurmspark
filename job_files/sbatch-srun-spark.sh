@@ -42,7 +42,6 @@
 ## The following settings are in place for SlurmSpark to work.
 ## Please do not change these unless you have a good reason
 #SBATCH --ntasks-per-node=1
-#SBATCH --exclusive
 #SBATCH --no-kill
 
 #-------------------------------------------------------------------------------
