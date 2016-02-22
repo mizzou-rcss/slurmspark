@@ -37,7 +37,7 @@
 #SBATCH --partition=Compute
 
 ## How much memory to use for the job (in megabytes)
-#SBATCH --mem=60000
+#SBATCH --mem=10000
 
 ## The following settings are in place for SlurmSpark to work.
 ## Please do not change these unless you have a good reason
