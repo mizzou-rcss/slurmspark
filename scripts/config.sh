@@ -26,19 +26,20 @@ set -o nounset                              # Treat unset variables as an error
 ##            This directory will contain your job-specific spark configs, logs, etc...
 SCRATCH_DIR="${HOME}/sparkscratch"
 
-## DEPRECATED
-## Java Version to use
-##   Options: 1.7.0
-##            1.8.0
-#JAVA_VERSION="1.7.0"
+## Directory for non-shared scratch (local to nodes).
+LOCAL_SCRATCH_DIR="/local/scratch/${USER}"
 
 ## Java home directory
-JAVA_HOME="/usr/lib/jvm/java-1.7.0-openjdk-1.7.0.79-2.5.5.1.el7_1.x86_64/jre"
+JAVA_HOME="/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.71-2.b15.el7_2.x86_64/jre"
+
+## TO DO
+## Java version to use via Environment Modules
+#JAVA_MODULE="java/openjdk/java-1.8.0-openjdk"
 
 ## Spark Binary Prefix
 ##   Options: Valid path to a directory containing spark installs
 ##     Notes: To use the system's version of spark, set this to
-##            SPARK_HOME_PREFIX="/share/sw/spark"
+##            SPARK_HOME_PREFIX="/cluster/software/spark"
 ##
 ##            To use a custom install, specify a path to your spark installs.
 ##            Example: SPARK_HOME_PREFIX="${HOME}/spark"
@@ -76,7 +77,11 @@ JAVA_HOME="/usr/lib/jvm/java-1.7.0-openjdk-1.7.0.79-2.5.5.1.el7_1.x86_64/jre"
 ##                  └── sbin
 ##
 ##             You can download spark from http://spark.apache.org/downloads.html
-SPARK_BINARY_PREFIX="/share/sw/spark"
+SPARK_BINARY_PREFIX="/cluster/software/spark"
+
+## TO DO
+## Spark version to use via Environment Modules
+#SPARK_MODULE="spark/spark-1.6.0-hadoop2.6"
 
 
 ## Spark and Hadoop Version to use
@@ -86,14 +91,14 @@ SPARK_BINARY_PREFIX="/share/sw/spark"
 ##            stored in SPARK_HOME.
 ##
 ##            For example, if 
-##              SPARK_BINARY_PREFIX=/share/sw/spark
-##              SPARK_VERSION=1.4.1
+##              SPARK_BINARY_PREFIX=/cluster/software/spark
+##              SPARK_VERSION=1.4.1-bin
 ##              SPARK_HADOOP_VERSION=2.6
 ##            then
-##              SPARK_HOME=/share/sw/spark/spark-1.4.1-hadoop2.6
+##              SPARK_HOME=/cluster/software/spark-1.4.1-bin-hadoop2.6
 ##               
 ##
-SPARK_VERSION="1.4.1"
+SPARK_VERSION="1.6.0-bin"
 SPARK_HADOOP_VERSION="2.6"
 
 ## Directory to write spark ( logs | configuration file | pids | local ) to.
@@ -103,8 +108,8 @@ SPARK_HADOOP_VERSION="2.6"
 SPARK_LOG_DIR="${SCRATCH_DIR}/logs/spark/${SLURM_JOB_ID}"
 SPARK_CONF_DIR="${SCRATCH_DIR}/conf/spark/${SLURM_JOB_ID}"
 SPARK_PID_DIR="${SCRATCH_DIR}/pid/spark/${SLURM_JOB_ID}"
-SPARK_LOCAL_DIRS="${SCRATCH_DIR}/local/sprak/${SLURM_JOB_ID}"
-SPARK_WORKER_DIR="${SCRATCH_DIR}/worker/spark/${SLURM_JOB_ID}"
+SPARK_LOCAL_DIRS="${LOCAL_SCRATCH_DIR}/local/sprak/${SLURM_JOB_ID}"
+SPARK_WORKER_DIR="${LOCAL_SCRATCH_DIR}/worker/spark/${SLURM_JOB_ID}"
 
 ## Spark ( MASTER | MASTER_WEBUI | WORKER_WEBUI ) Port
 ##   Options: (any port greater than 1000 that is not in use)
@@ -121,7 +126,7 @@ SPARK_MASTER_WEBUI_PORT="8080"
 SPARK_WORKER_WEBUI_PORT="8081"
 
 #-------------------------------------------------------------------------------
-#  CONFIG HADOOP
+#  DEPRECATED CONFIG HADOOP
 #-------------------------------------------------------------------------------
 ## Hadoop Setup
 ##    Options: true or false
@@ -155,11 +160,10 @@ HADOOP_COMMON_LIB_NATIVE_DIR="${HADOOP_PREFIX}/lib/native"
 HADOOP_OPTS="-Djava.library.path=${HADOOP_PREFIX}/lib"
 
 #-------------------------------------------------------------------------------
-# CONFIG (DO NOT MODIFY!!)
+# CONFIG (should not need to modify)
 #-------------------------------------------------------------------------------
 ## Hostname of system this script is run on
 HOSTNAME="$(hostname -s)"
-
 
 ## Determine the walltime of the job.  This is used to determine how long 
 ## spark-run.sh will wait before exiting.
