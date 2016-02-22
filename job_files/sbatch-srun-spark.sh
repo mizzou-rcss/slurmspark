@@ -34,7 +34,7 @@
 #SBATCH --job-name=testing
 
 ## The Slurm partition to run on
-#SBATCH --partition=Mem128
+#SBATCH --partition=Compute
 
 ## How much memory to use for the job (in megabytes)
 #SBATCH --mem=60000
