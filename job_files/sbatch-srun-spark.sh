@@ -27,6 +27,9 @@
 ## current working directory
 #SBATCH --output="%j.out"
 
+## The number of cores used by each executor
+#SBATCH --cpus-per-task=8
+
 ## How long the Spark cluster will last (in minutes)
 #SBATCH --time=128
 
