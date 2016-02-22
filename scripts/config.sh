@@ -30,11 +30,13 @@ SCRATCH_DIR="${HOME}/sparkscratch"
 LOCAL_SCRATCH_DIR="/local/scratch/${USER}"
 
 ## Java home directory
-JAVA_HOME="/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.71-2.b15.el7_2.x86_64/jre"
+JAVA_VERSION="1.8.0-openjdk"
+JAVA_HOME="/usr/lib/jvm/java-${JAVA_VERSION}-1.8.0.71-2.b15.el7_2.x86_64/jre"
 
 ## TO DO
 ## Java version to use via Environment Modules
 #JAVA_MODULE="java/openjdk/java-1.8.0-openjdk"
+## END TO DO
 
 ## Spark Binary Prefix
 ##   Options: Valid path to a directory containing spark installs
@@ -82,6 +84,7 @@ SPARK_BINARY_PREFIX="/cluster/software/spark"
 ## TO DO
 ## Spark version to use via Environment Modules
 #SPARK_MODULE="spark/spark-1.6.0-hadoop2.6"
+## END TO DO
 
 
 ## Spark and Hadoop Version to use
