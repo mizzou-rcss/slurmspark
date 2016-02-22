@@ -27,6 +27,9 @@
 ## current working directory
 #SBATCH --output="%j.out"
 
+## The number of cores used by each executor
+#SBATCH --cpus-per-task=8
+
 ## How long the Spark cluster will last (in minutes)
 #SBATCH --time=128
 
@@ -34,10 +37,10 @@
 #SBATCH --job-name=testing
 
 ## The Slurm partition to run on
-#SBATCH --partition=Mem128
+#SBATCH --partition=Compute
 
 ## How much memory to use for the job (in megabytes)
-#SBATCH --mem=60000
+#SBATCH --mem=10000
 
 ## The following settings are in place for SlurmSpark to work.
 ## Please do not change these unless you have a good reason
