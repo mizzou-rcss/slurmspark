@@ -24,7 +24,7 @@ set -o nounset                              # Treat unset variables as an error
 ## Directory for shared scratch.
 ##     Notes: Directory must be accessible from every node in the cluster
 ##            This directory will contain your job-specific spark configs, logs, etc...
-SCRATCH_DIR="${HOME}/sparkscratch"
+SCRATCH_DIR="${HOME}/scratch"
 
 ## Directory for non-shared scratch (local to nodes).
 LOCAL_SCRATCH_DIR="/local/scratch/${USER}"
@@ -111,7 +111,7 @@ SPARK_HADOOP_VERSION="2.6"
 SPARK_LOG_DIR="${SCRATCH_DIR}/logs/spark/${SLURM_JOB_ID}"
 SPARK_CONF_DIR="${SCRATCH_DIR}/conf/spark/${SLURM_JOB_ID}"
 SPARK_PID_DIR="${SCRATCH_DIR}/pid/spark/${SLURM_JOB_ID}"
-SPARK_LOCAL_DIRS="${LOCAL_SCRATCH_DIR}/local/sprak/${SLURM_JOB_ID}"
+SPARK_LOCAL_DIRS="${LOCAL_SCRATCH_DIR}/local/spark/${SLURM_JOB_ID}"
 SPARK_WORKER_DIR="${LOCAL_SCRATCH_DIR}/worker/spark/${SLURM_JOB_ID}"
 
 ## Spark ( MASTER | MASTER_WEBUI | WORKER_WEBUI ) Port
