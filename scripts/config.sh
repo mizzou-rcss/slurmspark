@@ -30,8 +30,8 @@ SCRATCH_DIR="${HOME}/scratch"
 LOCAL_SCRATCH_DIR="/local/scratch/${USER}"
 
 ## Java home directory
-JAVA_VERSION="1.8.0-openjdk"
-JAVA_HOME="/usr/lib/jvm/java-${JAVA_VERSION}-1.8.0.71-2.b15.el7_2.x86_64/jre"
+JAVA_VERSION="1.7.0-openjdk"
+JAVA_HOME="/usr/lib/jvm/java-${JAVA_VERSION}-1.7.0.95-2.6.4.0.el7_2.x86_64/jre"
 
 ## TO DO
 ## Java version to use via Environment Modules
