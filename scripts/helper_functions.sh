@@ -31,19 +31,26 @@ set -o nounset                              # Treat unset variables as an error
 slurm::walltime_to_min () {
     local walltime="$1"
     local numcolons="$(echo ${walltime} | awk -F: '{print NF-1}')"
+    local days="$(echo ${walltime} | awk -F\- '{print $1}')"
     local fallback_walltime="$(sacctmgr -n list association account=general format="MaxWall" | head -n1 | sed 's/\-/\:/g')"
     local walltimetominutes=""
 
-    case $numcolons in
-      '0' ) if [[ "$walltime" == "UNLIMITED" ]]; then
-              walltimetominutes=$(echo ${fallback_walltime} | awk -F':' '{print $1 * 24 * 60 + $2 + $3 / 60}' | xargs printf "%1.0f")
-            fi
-        ;;
-      '1' ) walltimetominutes=$(echo ${walltime} | awk -F':' '{print $1 + $2 / 60}' | xargs printf "%1.0f");;
-      '2' ) walltimetominutes=$(echo ${walltime} | awk -F':' '{print $1 * 60 + $2 + $3 / 60}' | xargs printf "%1.0f");;
-    esac
+    if [[ "$days" -gt "0" ]]; then
+      walltime=$(echo $walltime | sed 's/\-/\:/g')
+      walltimetominutes=$(echo ${walltime} | awk -F':' '{print $1 * 24 * 60 + $2 * 60 + $3 + $4 / 60}' | xargs printf "%1.0f")
+    else
+      case $numcolons in
+        '0' ) if [[ "$walltime" == "UNLIMITED" ]]; then
+                walltimetominutes=$(echo ${fallback_walltime} | awk -F':' '{print $1 * 24 * 60 + $2 + $3 / 60}' | xargs printf "%1.0f")
+              fi
+          ;;
+        '1' ) walltimetominutes=$(echo ${walltime} | awk -F':' '{print $1 + $2 / 60}' | xargs printf "%1.0f");;
+        '2' ) walltimetominutes=$(echo ${walltime} | awk -F':' '{print $1 * 60 + $2 + $3 / 60}' | xargs printf "%1.0f");;
+      esac
+    fi
     echo "$walltimetominutes"
 }
+
 
 #---  FUNCTION  ----------------------------------------------------------------
 #          NAME:  slurm::wait
