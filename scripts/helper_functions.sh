@@ -31,9 +31,16 @@ set -o nounset                              # Treat unset variables as an error
 slurm::walltime_to_min () {
     local walltime="$1"
     local numcolons="$(echo ${walltime} | awk -F: '{print NF-1}')"
-    local days="$(echo ${walltime} | awk -F\- '{print $1}')"
+    local days=""
     local fallback_walltime="$(sacctmgr -n list association account=general format="MaxWall" | head -n1 | sed 's/\-/\:/g')"
     local walltimetominutes=""
+
+    ## Only awk days if - exists in walltime, else days are 0
+    if [[ "$walltime" =~ '-' ]]; then
+      days="$(echo ${walltime} | awk -F\- '{print $1}')"
+    else
+      days="0"
+    fi
 
     if [[ "$days" -gt "0" ]]; then
       walltime=$(echo $walltime | sed 's/\-/\:/g')
