@@ -152,7 +152,10 @@ main() {
         echo "Found the SlurmSpark master at ${slurmspark_master}"
         echo "Submitting \"$@\" via spark-submit"
         slurmspark::submit $@
+        start_spinner "Destroying SlurmSpark cluster..."
         destroy::cluster "${slurm_jobid}"
+        destroy_exitcode="$?"
+        stop_spinner ${destroy_exitcode}
       fi
   fi
 }
