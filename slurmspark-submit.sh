@@ -20,9 +20,9 @@
 #       CREATED: 03/10/2016 03:36:51 PM CST
 #      REVISION: 0.1
 #===============================================================================
-
 set -o nounset                              # Treat unset variables as an error
-
+source scripts/spinner.sh
+#===============================================================================
 
 #-------------------------------------------------------------------------------
 #  CONFIG
@@ -116,9 +116,12 @@ main() {
       build::cluster "${SBATCH_JOB_FILE}"
 
       slurm_jobid="$(get::current_jobid "${CURRENT_JOB_ID_FILE}")"
-
+      
+      start_spinner "Waiting for SlurmSpark cluster..."
       waitfor::cluster "${slurm_jobid}.out"
-      if [[ "$?" -gt "0" ]]; then
+      wait_exitcode="$?"
+      stop_spinner ${wait_exitcode}
+      if [[ "${wait_exitcode}" -gt "0" ]]; then
         echo "Waited 30 seconds for the SlurmSpark master, but none found.  Exiting"
         exit 2
       else
@@ -136,8 +139,11 @@ main() {
       
       slurm_jobid="$(get::current_jobid "${CURRENT_JOB_ID_FILE}")"
       
+      start_spinner "Waiting for SlurmSpark cluster..."
       waitfor::cluster "${slurm_jobid}.out"
-      if [[ "$?" -gt "0" ]]; then
+      wait_exitcode="$?"
+      stop_spinner ${wait_exitcode}
+      if [[ "${wait_exitcode}" -gt "0" ]]; then
         echo "Waited 30 seconds for the SlurmSpark master, but none found.  Exiting"
         exit 2
       else
