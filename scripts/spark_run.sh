@@ -215,6 +215,7 @@ spark::get_set_info() {
   export SPARK_MASTER_WEBUI_PORT=${spark_ui_port}
   export SPARK_UI_URL=${spark_ui_url}
   
+
   ## Only export HDFS items if we are setting up HDFS
   if [[ "$HADOOP_SP_SETUP" == "true" ]]; then
     export HDFS_LOCATION=${hdfs}
@@ -338,6 +339,9 @@ main() {
     spark::start_slave "$((${SPARK_WORKER_CORES} - 1))"
     ## Print info on the cluster
     spark::print_info
+    ## For use with slurmspark-submit.sh
+    ## Write out master to a hidden file that said script can have access to
+    echo "${SPARK_MASTER_IP}:${SPARK_MASTER_PORT}" > .slurmspark_master
   ## If we are not the master node, start slave services
   else
     if [[ "$HADOOP_SP_SETUP" == "true" ]]; then
