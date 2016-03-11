@@ -123,7 +123,7 @@ main() {
         exit 2
       else
         local slurmspark_master="$(get::slurmspark_master "${slurm_jobid}.out")"
-        export MASTER="spark://${slurmspark_master}"
+        export MASTER="${slurmspark_master}"
         echo "Found the SlurmSpark master at ${slurmspark_master}"
         echo "Submitting \"$@\" via spark-submit"
         slurmspark::submit $@
@@ -142,7 +142,7 @@ main() {
         exit 2
       else
         local slurmspark_master="$(get::slurmspark_master "${slurm_jobid}.out")"
-        export MASTER="spark://${slurmspark_master}"
+        export MASTER="${slurmspark_master}"
         echo "Found the SlurmSpark master at ${slurmspark_master}"
         echo "Submitting \"$@\" via spark-submit"
         slurmspark::submit $@
