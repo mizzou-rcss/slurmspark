@@ -339,9 +339,6 @@ main() {
     spark::start_slave "$((${SPARK_WORKER_CORES} - 1))"
     ## Print info on the cluster
     spark::print_info
-    ## For use with slurmspark-submit.sh
-    ## Write out master to a hidden file that said script can have access to
-    echo "${SPARK_MASTER_IP}:${SPARK_MASTER_PORT}" > .slurmspark_master
   ## If we are not the master node, start slave services
   else
     if [[ "$HADOOP_SP_SETUP" == "true" ]]; then

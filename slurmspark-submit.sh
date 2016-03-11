@@ -31,7 +31,6 @@ SBATCH_JOB_FILE="job_files/sbatch-srun-spark.sh"
 
 ## DO NOT CHANGE UNLESS YOU KNOW WHAT YOU ARE DOING
 CURRENT_JOB_ID_FILE=".current_jobid"
-SLURMSPARK_MASTER_FILE=".slurmspark_master"
 
 #-------------------------------------------------------------------------------
 #  FUNCTIONS
@@ -43,10 +42,10 @@ build::cluster() {
 }
 
 waitfor::cluster() {
-  local slurmspark_master_file="$1"
+  local slurmspark_out_file="$1"
 
   for i in {1..45}; do
-    if [[ -f "${slurmspark_master_file}" ]]; then
+    if [[ -f "${slurmspark_out_file}" ]]; then
       return 0
     fi
     sleep 1
@@ -85,6 +84,15 @@ get::current_jobid() {
   fi
 }
 
+get::slurmspark_master() {
+  local slurm_job_out="$1"
+
+  slurm_master_ip="$(grep "IP :" ${slurm_job_out} | awk '{print $3}')"
+  slurm_master_port="$(grep "Master Port :" ${slurm_job_out} | awk '{print $4}')"
+
+  echo "spark://${slurm_master_ip}:${slurm_master_port}"
+}
+
 slurmspark::submit() {
   module load java/openjdk/java-1.7.0-openjdk
   module load spark/spark-1.6.0-bin-hadoop2.6
@@ -92,18 +100,8 @@ slurmspark::submit() {
   spark-submit $@
 }
 
-clean::up() {
-  if [[ -f "${SLURMSPARK_MASTER_FILE}" ]]; then
-    rm -f ${SLURMSPARK_MASTER_FILE}
-  fi
-}
-
 main() {
   local slurm_jobid=""
-  ## Ensure our working directory is clean of some of the hidden files
-  ## before starting.
-  clean::up
-
   ## Check if we have a jobid file already, and if we do, check the jobs status
   if [[ -f ${CURRENT_JOB_ID_FILE} ]]; then
     slurm_jobid="$(get::current_jobid "${CURRENT_JOB_ID_FILE}")"
@@ -119,12 +117,12 @@ main() {
 
       slurm_jobid="$(get::current_jobid "${CURRENT_JOB_ID_FILE}")"
 
-      waitfor::cluster "${SLURMSPARK_MASTER_FILE}"
+      waitfor::cluster "${slurm_jobid}.out"
       if [[ "$?" -gt "0" ]]; then
         echo "Waited 30 seconds for the SlurmSpark master, but none found.  Exiting"
         exit 2
       else
-        local slurmspark_master="$(cat ${SLURMSPARK_MASTER_FILE})"
+        local slurmspark_master="$(get::slurmspark_master "${slurm_jobid}.out")"
         export MASTER="spark://${slurmspark_master}"
         echo "Found the SlurmSpark master at ${slurmspark_master}"
         echo "Submitting \"$@\" via spark-submit"
@@ -138,12 +136,12 @@ main() {
       
       slurm_jobid="$(get::current_jobid "${CURRENT_JOB_ID_FILE}")"
       
-      waitfor::cluster "${SLURMSPARK_MASTER_FILE}"
+      waitfor::cluster "${slurm_jobid}.out"
       if [[ "$?" -gt "0" ]]; then
         echo "Waited 30 seconds for the SlurmSpark master, but none found.  Exiting"
         exit 2
       else
-        local slurmspark_master="$(cat ${SLURMSPARK_MASTER_FILE})"
+        local slurmspark_master="$(get::slurmspark_master "${slurm_jobid}.out")"
         export MASTER="spark://${slurmspark_master}"
         echo "Found the SlurmSpark master at ${slurmspark_master}"
         echo "Submitting \"$@\" via spark-submit"
