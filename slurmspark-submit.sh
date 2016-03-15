@@ -91,7 +91,12 @@ get::slurmspark_master() {
   slurm_master_ip="$(grep "IP :" ${slurm_job_out} | awk '{print $3}')"
   slurm_master_port="$(grep "Master Port :" ${slurm_job_out} | awk '{print $4}')"
 
-  echo "spark://${slurm_master_ip}:${slurm_master_port}"
+  if [[ "$slurm_master_ip" != "" ]] && [[ "$slurm_master_port" != "" ]]; then
+    echo "spark://${slurm_master_ip}:${slurm_master_port}"
+  else
+    echo "Spark Master not found at ${slurm_job_out}.  Exiting."
+    exit 4
+  fi
 }
 
 slurmspark::submit() {
