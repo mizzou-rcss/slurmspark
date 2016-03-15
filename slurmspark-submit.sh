@@ -116,6 +116,7 @@ main() {
     ## run away screaming.
     if [[ "$?" -gt "0" ]]; then
       echo "SlurmSpark cluster is already running under the Slurm JobID ${slurm_jobid}"
+      echo "Please complete or cancel this job before trying again."
       exit 1
     ## Else, we are clear to start the SlurmSpark cluster
     else
@@ -150,7 +151,7 @@ main() {
       wait_exitcode="$?"
       stop_spinner ${wait_exitcode}
       if [[ "${wait_exitcode}" -gt "0" ]]; then
-        echo "Waited 30 seconds for the SlurmSpark master, but none found.  Exiting"
+        echo "Waited ${WAITTIME} seconds for the SlurmSpark master, but none found.  Exiting"
         exit 2
       else
         local slurmspark_master="$(get::slurmspark_master "${slurm_jobid}.out")"
