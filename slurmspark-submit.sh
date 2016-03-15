@@ -28,6 +28,7 @@ source scripts/spinner.sh
 #  CONFIG
 #-------------------------------------------------------------------------------
 SBATCH_JOB_FILE="job_files/sbatch-srun-spark.sh"
+WAITTIME="60"
 
 ## DO NOT CHANGE UNLESS YOU KNOW WHAT YOU ARE DOING
 CURRENT_JOB_ID_FILE=".current_jobid"
@@ -122,7 +123,7 @@ main() {
       wait_exitcode="$?"
       stop_spinner ${wait_exitcode}
       if [[ "${wait_exitcode}" -gt "0" ]]; then
-        echo "Waited 30 seconds for the SlurmSpark master, but none found.  Exiting"
+        echo "Waited ${WAITTIME} seconds for the SlurmSpark master, but none found.  Exiting"
         exit 2
       else
         local slurmspark_master="$(get::slurmspark_master "${slurm_jobid}.out")"
