@@ -45,7 +45,7 @@ build::cluster() {
 waitfor::cluster() {
   local slurmspark_out_file="$1"
 
-  for i in {1..45}; do
+  for (( c=1; c<=${WAITTIME}; c++ )) do
     if [[ -f "${slurmspark_out_file}" ]]; then
       return 0
     fi
