@@ -46,7 +46,7 @@ waitfor::cluster() {
   local slurmspark_out_file="$1"
 
   for (( c=1; c<=${WAITTIME}; c++ )) do
-    if [[ -f "${slurmspark_out_file}" ]]; then
+    if [[ -f "${slurmspark_out_file}" ]] && grep -q "run-example" ${slurmspark_out_file}; then
       return 0
     fi
     sleep 1
