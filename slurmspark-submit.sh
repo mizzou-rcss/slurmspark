@@ -36,6 +36,10 @@ CURRENT_JOB_ID_FILE=".current_jobid"
 #-------------------------------------------------------------------------------
 #  FUNCTIONS
 #-------------------------------------------------------------------------------
+echo::error() {
+  echo "$@" 1>&2;
+}
+
 build::cluster() {
   local sbatch_job_file="$1"
   
@@ -80,7 +84,7 @@ get::current_jobid() {
     jobid="$(awk '{print $4}' ${current_job_id_file})"
     echo "${jobid}"
   else
-    echo "Problem locating the current running SlurmSpark cluster.  Exiting"
+    echo::error "Problem locating the current running SlurmSpark cluster.  Exiting" 
     exit 3
   fi
 }
@@ -94,7 +98,7 @@ get::slurmspark_master() {
   if [[ "$slurm_master_ip" != "" ]] && [[ "$slurm_master_port" != "" ]]; then
     echo "spark://${slurm_master_ip}:${slurm_master_port}"
   else
-    echo "Spark Master not found at ${slurm_job_out}.  Exiting."
+    echo::error "Spark Master not found at ${slurm_job_out}.  Exiting."
     exit 4
   fi
 }
@@ -115,8 +119,8 @@ main() {
     ## If the job under the jobid witin CURRENT_JOB_ID_FILE is still running,
     ## run away screaming.
     if [[ "$?" -gt "0" ]]; then
-      echo "SlurmSpark cluster is already running under the Slurm JobID ${slurm_jobid}"
-      echo "Please complete or cancel this job before trying again."
+      echo::error "SlurmSpark cluster is already running under the Slurm JobID ${slurm_jobid}"
+      echo::error "Please complete or cancel this job before trying again."
       exit 1
     ## Else, we are clear to start the SlurmSpark cluster
     else
@@ -129,7 +133,7 @@ main() {
       wait_exitcode="$?"
       stop_spinner ${wait_exitcode}
       if [[ "${wait_exitcode}" -gt "0" ]]; then
-        echo "Waited ${WAITTIME} seconds for the SlurmSpark master, but none found.  Exiting"
+        echo::error "Waited ${WAITTIME} seconds for the SlurmSpark master, but none found.  Exiting"
         exit 2
       else
         local slurmspark_master="$(get::slurmspark_master "${slurm_jobid}.out")"
@@ -151,7 +155,7 @@ main() {
       wait_exitcode="$?"
       stop_spinner ${wait_exitcode}
       if [[ "${wait_exitcode}" -gt "0" ]]; then
-        echo "Waited ${WAITTIME} seconds for the SlurmSpark master, but none found.  Exiting"
+        echo::error "Waited ${WAITTIME} seconds for the SlurmSpark master, but none found.  Exiting"
         exit 2
       else
         local slurmspark_master="$(get::slurmspark_master "${slurm_jobid}.out")"
@@ -171,4 +175,7 @@ main() {
 #-------------------------------------------------------------------------------
 #  MAIN
 #-------------------------------------------------------------------------------
+## Ensure MASTER is empty before calling the main function
+unset MASTER
+
 main $@
