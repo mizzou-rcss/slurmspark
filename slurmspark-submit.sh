@@ -31,7 +31,8 @@ SBATCH_JOB_FILE="job_files/sbatch-srun-spark.sh"
 WAITTIME="60"
 
 ## DO NOT CHANGE UNLESS YOU KNOW WHAT YOU ARE DOING
-CURRENT_JOB_ID_FILE=".current_jobid"
+DATE="$(date +%m%d%y_%N)"
+CURRENT_JOB_ID_FILE=".current_jobid_${DATE}"
 
 #-------------------------------------------------------------------------------
 #  FUNCTIONS
