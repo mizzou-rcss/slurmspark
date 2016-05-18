@@ -38,10 +38,20 @@ CURRENT_JOB_ID_FILE=".current_jobid_${DATE}"
 #  FUNCTIONS
 #-------------------------------------------------------------------------------
 trap::ctrl_c() {
-  echo::error "Control-C pressed.  Exiting."
-  echo::error "Please ensure your SLURM jobs have ended."
+  if [[ -f ${CURRENT_JOB_ID_FILE} ]]; then
+    slurm_jobid="$(get::current_jobid "${CURRENT_JOB_ID_FILE}")"
+  fi
+  if [[ "${slurm_jobid}" == "" ]]; then
+    echo::error "Control-C pressed.  Press Control-C again to exit."
+    echo::error "Please ensure your SLURM jobs (JobID ${slurm_jobid}) have ended."
+  else
+    destroy::cluster "${slurm_jobid}"
+    echo::error "Control-C pressed.  Press Control-C again to exit."
+    echo::error "Please ensure your SLURM jobs (JobID ${slurm_jobid}) have ended."
+  fi
   stop_spinner 1
 }
+
 echo::error() {
   echo "$@" 1>&2;
 }
