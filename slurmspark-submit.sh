@@ -44,7 +44,7 @@ echo::error() {
 build::cluster() {
   local sbatch_job_file="$1"
   
-  sbatch -k ${sbatch_job_file} | tee .current_jobid
+  sbatch -k ${sbatch_job_file} | tee ${CURRENT_JOB_ID_FILE}
 }
 
 
