@@ -37,6 +37,11 @@ CURRENT_JOB_ID_FILE=".current_jobid_${DATE}"
 #-------------------------------------------------------------------------------
 #  FUNCTIONS
 #-------------------------------------------------------------------------------
+trap::ctrl_c() {
+  echo::error "Control-C pressed.  Exiting."
+  echo::error "Please ensure your SLURM jobs have ended."
+  stop_spinner 1
+}
 echo::error() {
   echo "$@" 1>&2;
 }
@@ -67,8 +72,7 @@ check::cluster_status() {
   local check="$(sacct -X -n -P -j ${sbatch_job_id} -s R -o jobid)"
 
   if [[ "$check" != "" ]]; then
-    return 1
-  else
+    return 
     return 0
   fi
 }
@@ -187,5 +191,5 @@ main() {
 #-------------------------------------------------------------------------------
 ## Ensure MASTER is empty before calling the main function
 unset MASTER
-
+trap 'trap::ctrl_c' SIGINT
 main $@
