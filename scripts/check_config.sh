@@ -14,7 +14,7 @@
 #        AUTHOR: Micheal Quinn (), quinnm@missouri.edu
 #  ORGANIZATION: RCSS
 #       CREATED: 10/08/2015 09:28:19 AM CDT
-#      REVISION: 1.5
+#      REVISION: 1.6-slurmspark-submit-parallel
 #===============================================================================
 set -o nounset                              # Treat unset variables as an error
 source ${SCRIPT_HOME}/config.sh

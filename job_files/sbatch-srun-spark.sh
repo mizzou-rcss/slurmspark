@@ -14,7 +14,7 @@
 #        AUTHOR: Micheal Quinn (), quinnm@missouri.edu
 #  ORGANIZATION: RCSS
 #       CREATED: 10/06/2015 04:05:58 PM CDT
-#      REVISION: 1.5
+#      REVISION: 1.6-slurmspark-submit-parallel
 #===============================================================================
 #-------------------------------------------------------------------------------
 #  SBATCH CONFIG
@@ -37,7 +37,7 @@
 #SBATCH --job-name=testing
 
 ## The Slurm partition to run on
-#SBATCH --partition=Compute
+#SBATCH --partition=GPU
 
 ## How much memory to use for the job (in megabytes)
 #SBATCH --mem=10000
