@@ -14,7 +14,7 @@
 #        AUTHOR: Micheal Quinn (), quinnm@missouri.edu
 #  ORGANIZATION: RCSS
 #       CREATED: 10/06/2015 03:54:47 PM CDT
-#      REVISION: 1.5
+#      REVISION: 1.6-devel
 #===============================================================================
 set -o nounset                              # Treat unset variables as an error
 
@@ -29,9 +29,10 @@ SCRATCH_DIR="${HOME}/scratch"
 ## Directory for non-shared scratch (local to nodes).
 LOCAL_SCRATCH_DIR="/local/scratch/${USER}"
 
-## Java home directory
+## Java home directory (need to redo this.  Modules should be used....)
 JAVA_VERSION="1.7.0-openjdk"
-JAVA_HOME="/usr/lib/jvm/java-${JAVA_VERSION}-1.7.0.95-2.6.4.0.el7_2.x86_64/jre"
+JAVA_VERSION_PLUS="1.7.0.111-2.6.7.2.el7_2.x86_64"
+JAVA_HOME="/usr/lib/jvm/java-${JAVA_VERSION}-${JAVA_VERSION_PLUS}/jre"
 
 ## TO DO
 ## Java version to use via Environment Modules
