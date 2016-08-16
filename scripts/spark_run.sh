@@ -14,7 +14,7 @@
 #        AUTHOR: Micheal Quinn (), quinnm@missouri.edu
 #  ORGANIZATION: RCSS
 #       CREATED: 10/06/2015 04:19:52 PM CDT
-#      REVISION: 1.5
+#      REVISION: 1.6-devel
 #===============================================================================
 set -o nounset                              # Treat unset variables as an error
 source ${SCRIPT_HOME}/pre_setup.sh
