@@ -14,7 +14,7 @@
 #        AUTHOR: Micheal Quinn (), quinnm@missouri.edu
 #  ORGANIZATION: RCSS
 #       CREATED: 10/06/2015 03:54:47 PM CDT
-#      REVISION: 1.6-devel
+#      REVISION: 1.6
 #===============================================================================
 set -o nounset                              # Treat unset variables as an error
 
