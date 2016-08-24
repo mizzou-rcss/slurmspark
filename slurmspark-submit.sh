@@ -21,14 +21,12 @@
 #      REVISION: 0.1
 #===============================================================================
 set -o nounset                              # Treat unset variables as an error
-source scripts/spinner.sh
 #===============================================================================
 
 #-------------------------------------------------------------------------------
 #  CONFIG
 #-------------------------------------------------------------------------------
-SBATCH_JOB_FILE="job_files/sbatch-srun-spark.sh"
-WAITTIME="60"
+SBATCH_JOB_FILE="${HOME}/slurmspark/job_files/sbatch-srun-spark.sh"
 
 ## DO NOT CHANGE UNLESS YOU KNOW WHAT YOU ARE DOING
 DATE="$(date +%m%d%y_%N)"
@@ -44,12 +42,13 @@ trap::ctrl_c() {
   if [[ "${slurm_jobid}" == "" ]]; then
     echo::error "Control-C pressed.  Press Control-C again to exit."
     echo::error "Please ensure your SLURM jobs (JobID ${slurm_jobid}) have ended."
+	exit
   else
     destroy::cluster "${slurm_jobid}"
     echo::error "Control-C pressed.  Press Control-C again to exit."
     echo::error "Please ensure your SLURM jobs (JobID ${slurm_jobid}) have ended."
+	exit
   fi
-  stop_spinner 1
 }
 
 echo::error() {
@@ -113,10 +112,10 @@ get::slurmspark_master() {
 }
 
 slurmspark::submit() {
-  module load java/openjdk/java-1.7.0-openjdk
+  module load mri/mri-hdfs
   module load spark/spark-1.6.0-bin-hadoop2.6
 
-  spark-submit $@
+  spark-shell $@
 }
 
 main() {
@@ -143,10 +142,9 @@ main() {
          exit 3
       fi
       
-      start_spinner "Waiting for SlurmSpark cluster..."
+      echo "Waiting for SlurmSpark cluster..."
       waitfor::cluster "${slurm_jobid}.out"
       wait_exitcode="$?"
-      stop_spinner ${wait_exitcode}
       if [[ "${wait_exitcode}" -gt "0" ]]; then
         echo::error "Waited ${WAITTIME} seconds for the SlurmSpark master, but none found.  Exiting"
         exit 2
@@ -159,6 +157,7 @@ main() {
         echo "Found the SlurmSpark master at ${slurmspark_master}"
         echo "Submitting \"$@\" via spark-submit"
         slurmspark::submit $@
+        echo "Destroying SlurmSpark cluster..."
         destroy::cluster "${slurm_jobid}"
       fi
     fi
@@ -171,10 +170,9 @@ main() {
          exit 3
       fi
       
-      start_spinner "Waiting for SlurmSpark cluster..."
+      echo "Waiting for SlurmSpark cluster..."
       waitfor::cluster "${slurm_jobid}.out"
       wait_exitcode="$?"
-      stop_spinner ${wait_exitcode}
       if [[ "${wait_exitcode}" -gt "0" ]]; then
         echo::error "Waited ${WAITTIME} seconds for the SlurmSpark master, but none found.  Exiting"
         exit 2
@@ -185,12 +183,11 @@ main() {
         fi
         export MASTER="${slurmspark_master}"
         echo "Found the SlurmSpark master at ${slurmspark_master}"
-        echo "Submitting \"$@\" via spark-submit"
+        echo "Submitting \"${@:2}\" via spark-submit"
         slurmspark::submit $@
-        start_spinner "Destroying SlurmSpark cluster..."
+        echo "Destroying SlurmSpark cluster..."
         destroy::cluster "${slurm_jobid}"
         destroy_exitcode="$?"
-        stop_spinner ${destroy_exitcode}
       fi
   fi
 }
